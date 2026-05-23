@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Events\OrderRealtimeUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
+use App\Models\BusinessSetting;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -32,6 +34,15 @@ class CheckoutController extends Controller
 
     public function store(StoreOrderRequest $request, WhatsAppService $whatsAppService, PaymentService $paymentService): RedirectResponse
     {
+        $business = BusinessSetting::current();
+        if (! $business->is_open) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'message' => $business->closed_message ?: 'El local esta cerrado y no esta recibiendo pedidos en este momento.',
+                ]);
+        }
+
         $data = $request->validated();
 
         DB::beginTransaction();
@@ -115,14 +126,23 @@ class CheckoutController extends Controller
                 ]);
             }
 
-            $paymentService->createAttempt($order, $data['payment_provider'] ?? 'wompi');
+            if ($data['payment_method'] === 'online') {
+                $paymentService->createAttempt($order, $data['payment_provider'] ?? 'wompi');
+            }
 
             $order->whatsapp_link = $whatsAppService->generateOrderLink($order);
             $order->save();
 
             DB::commit();
+            OrderRealtimeUpdated::dispatch($order->fresh(), 'created');
 
-            return redirect($order->whatsapp_link)->with('success', 'Pedido creado correctamente.');
+            return redirect()
+                ->route('orders.tracking', [
+                    'order_number' => $order->order_number,
+                    'phone' => $order->customer_phone,
+                ])
+                ->with('clear_cart', true)
+                ->with('success', 'Pedido creado correctamente. Ya puedes seguirlo en TrackCheck.');
         } catch (\Exception $e) {
             DB::rollBack();
             report($e);

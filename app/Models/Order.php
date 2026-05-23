@@ -32,6 +32,7 @@ class Order extends Model
         'delivery_address',
         'delivery_fee_id',
         'notes',
+        'cancellation_reason',
         'payment_method',
         'payment_status',
         'status',

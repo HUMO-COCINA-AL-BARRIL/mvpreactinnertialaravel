@@ -10,14 +10,12 @@ class WhatsAppService
     public function generateOrderLink(Order $order): string
     {
         $lines = [
-            'Hola, quiero confirmar mi pedido en Humo Cocina al Barril.',
+            'Hola, quiero confirmar tu pedido en Humo Cocina al Barril.',
             '',
-            'Orden: #'.$order->order_number,
-            'Cliente: '.$order->customer_name,
-            'Celular: '.$order->customer_phone,
+            'Queremos confirmar tu pedido #'.$order->order_number.'.',
             'Tipo de pedido: '.$this->formatDeliveryMethod($order->delivery_method),
             '',
-            'Productos:',
+            'Resumen:',
             '',
         ];
 
@@ -45,7 +43,16 @@ class WhatsAppService
             $lines[] = $order->delivery_address;
         }
 
-        return $this->buildUrl(implode(PHP_EOL, $lines));
+        $lines[] = '';
+        $lines[] = 'Puedes hacer seguimiento aqui:';
+        $lines[] = route('orders.tracking', [
+            'order_number' => $order->order_number,
+            'phone' => $order->customer_phone,
+        ]);
+        $lines[] = '';
+        $lines[] = 'Si deseas responder o ajustar algo, estamos atentos.';
+
+        return $this->buildCustomerUrl($order->customer_phone, implode(PHP_EOL, $lines));
     }
 
     public function generateReservationLink(Reservation $reservation): string
@@ -71,6 +78,13 @@ class WhatsAppService
     private function buildUrl(string $message): string
     {
         $number = preg_replace('/\D+/', '', (string) config('services.whatsapp.number'));
+
+        return 'https://wa.me/'.$number.'?text='.urlencode($message);
+    }
+
+    private function buildCustomerUrl(string $phone, string $message): string
+    {
+        $number = preg_replace('/\D+/', '', $phone);
 
         return 'https://wa.me/'.$number.'?text='.urlencode($message);
     }

@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Moment;
+use App\Models\MomentComment;
+use App\Models\MomentReaction;
 use App\Models\Order;
 use App\Models\PaymentAttempt;
 use App\Models\Product;
@@ -21,6 +24,9 @@ class AdminDashboardController extends Controller
                 'availableProducts' => Product::where('is_available', true)->count(),
                 'featuredProducts' => Product::where('is_featured', true)->count(),
                 'categories' => Category::count(),
+                'moments' => Moment::count(),
+                'momentComments' => MomentComment::count(),
+                'momentLikes' => MomentReaction::query()->where('type', MomentReaction::TYPE_LIKE)->count(),
             ],
             'paymentStats' => $paymentService->getBalanceMetrics(),
             'orderStats' => [

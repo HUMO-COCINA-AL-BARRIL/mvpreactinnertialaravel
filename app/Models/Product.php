@@ -56,4 +56,32 @@ class Product extends Model
 
         return Storage::url($this->image);
     }
+
+    public function getNameAttribute(?string $value): ?string
+    {
+        return $this->normalizeText($value);
+    }
+
+    public function getShortDescriptionAttribute(?string $value): ?string
+    {
+        return $this->normalizeText($value);
+    }
+
+    public function getDescriptionAttribute(?string $value): ?string
+    {
+        return $this->normalizeText($value);
+    }
+
+    private function normalizeText(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        if (! preg_match('/[\x{00C3}\x{00C2}\x{00E2}]/u', $value)) {
+            return $value;
+        }
+
+        return mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+    }
 }

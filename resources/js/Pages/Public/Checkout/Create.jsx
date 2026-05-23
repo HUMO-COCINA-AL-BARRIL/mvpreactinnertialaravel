@@ -7,7 +7,7 @@ import PublicLayout from '../../../Layouts/PublicLayout';
 const formatMoney = (value) => `$${new Intl.NumberFormat('es-CO').format(value || 0)}`;
 
 export default function CheckoutCreate({ availableProducts = [], deliveryFees = [] }) {
-    const { errors } = usePage().props;
+    const { errors, business } = usePage().props;
     const [items, setItems] = useState([]);
     const [form, setForm] = useState({
         customer_name: '',
@@ -31,13 +31,10 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
     }, []);
 
     useEffect(() => {
-        if (form.delivery_method === 'delivery' && form.payment_method === 'on_site') {
-            setForm((prev) => ({ ...prev, payment_method: 'cash_on_delivery', payment_provider: '' }));
-        }
         if (form.delivery_method !== 'delivery' && form.delivery_fee_id) {
             setForm((prev) => ({ ...prev, delivery_fee_id: '' }));
         }
-    }, [form.delivery_method, form.payment_method, form.delivery_fee_id]);
+    }, [form.delivery_method, form.delivery_fee_id]);
 
     const productsMap = useMemo(() => {
         const map = new Map();
@@ -76,6 +73,9 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
     }, [deliveryFees, form.delivery_method, form.delivery_fee_id]);
 
     const total = subtotal + selectedDeliveryFee;
+    const isBusinessOpen = business?.isOpen ?? true;
+    const closedMessage = business?.closedMessage ?? 'El local esta cerrado en este momento. Vuelve pronto.';
+    const isOnlinePayment = form.payment_method === 'online';
 
     const updateQty = (id, delta) => {
         setItems((prev) => {
@@ -93,6 +93,10 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
 
         if (normalizedItems.length === 0) {
             alert('Tu carrito está vacío.');
+            return;
+        }
+
+        if (!isBusinessOpen) {
             return;
         }
 
@@ -118,7 +122,16 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
 
     return (
         <>
-            <Head title="Checkout" />
+            <Head title="Checkout | HUMO Cocina al Barril">
+                <meta name="description" content="Finaliza tu pedido en HUMO Cocina al Barril con entrega, recogida o consumo en sitio." />
+                <meta name="robots" content="noindex,nofollow" />
+                <link rel="canonical" href={route('checkout.create')} />
+                <meta property="og:title" content="Checkout | HUMO Cocina al Barril" />
+                <meta property="og:description" content="Finaliza tu pedido en HUMO Cocina al Barril con entrega, recogida o consumo en sitio." />
+                <meta property="og:url" content={route('checkout.create')} />
+                <meta property="og:image" content={`${window.location.origin}/images/humo_hero.png`} />
+                <meta name="twitter:card" content="summary_large_image" />
+            </Head>
 
             <PublicLayout>
                 <div className="max-w-7xl mx-auto px-6 py-10">
@@ -132,6 +145,12 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
                     <div className="grid gap-6 lg:grid-cols-3">
                         <form onSubmit={submit} className="lg:col-span-2 rounded-2xl bg-white text-black border border-neutral-200 p-6 space-y-4">
                             <h2 className="text-xl font-bold">Datos de entrega</h2>
+
+                            {!isBusinessOpen && (
+                                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                                    {closedMessage}
+                                </div>
+                            )}
 
                             <div className="grid sm:grid-cols-2 gap-4">
                                 <div>
@@ -207,31 +226,46 @@ export default function CheckoutCreate({ availableProducts = [], deliveryFees = 
                                         }
                                     >
                                         <option value="online">Pago online</option>
-                                        <option value="cash_on_delivery">Pago en casa</option>
-                                        {form.delivery_method !== 'delivery' && (
-                                            <option value="on_site">Pago en sitio</option>
-                                        )}
+                                        <option value="cash">Pago no online</option>
+                                        <option value="transfer">Transferencia</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Pasarela</label>
+                                    <label className="text-sm font-medium">{isOnlinePayment ? 'Pasarela' : 'Forma de pago'}</label>
                                     <select
                                         className="mt-1 w-full rounded-xl border-neutral-300"
-                                        value={form.payment_provider}
-                                        onChange={(e) => setForm((prev) => ({ ...prev, payment_provider: e.target.value }))}
-                                        disabled={form.payment_method !== 'online'}
+                                        value={isOnlinePayment ? form.payment_provider : form.payment_method}
+                                        onChange={(e) =>
+                                            setForm((prev) => (
+                                                isOnlinePayment
+                                                    ? { ...prev, payment_provider: e.target.value }
+                                                    : { ...prev, payment_method: e.target.value, payment_provider: '' }
+                                            ))
+                                        }
                                     >
-                                        <option value="wompi">Wompi</option>
-                                        <option value="mercadopago">Mercado Pago</option>
-                                        <option value="payu">PayU</option>
+                                        {isOnlinePayment ? (
+                                            <>
+                                                <option value="wompi">Wompi</option>
+                                                <option value="mercadopago">Mercado Pago</option>
+                                                <option value="payu">PayU</option>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <option value="cash">
+                                                    {form.delivery_method === 'delivery' ? 'Efectivo contra entrega' : 'Efectivo en sitio'}
+                                                </option>
+                                                <option value="transfer">Transferencia</option>
+                                            </>
+                                        )}
                                     </select>
+                                    {errors.payment_provider && <p className="text-red-600 text-sm mt-1">{errors.payment_provider}</p>}
                                 </div>
                             </div>
 
                             {errors.message && <p className="text-red-600 text-sm">{errors.message}</p>}
 
-                            <button disabled={processing} type="submit" className="rounded-xl bg-amber-500 px-5 py-3 font-bold text-black hover:bg-amber-400 disabled:opacity-70">
-                                {processing ? 'Procesando...' : 'Confirmar pedido'}
+                            <button disabled={processing || !isBusinessOpen} type="submit" className="rounded-xl bg-amber-500 px-5 py-3 font-bold text-black hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-70">
+                                {!isBusinessOpen ? 'Local cerrado' : processing ? 'Procesando...' : 'Confirmar pedido'}
                             </button>
                         </form>
 

@@ -24,6 +24,16 @@ class UpdateOrderStatusRequest extends FormRequest
         return [
             'status' => ['required', 'in:pending,confirmed,preparing,ready,delivered,cancelled'],
             'payment_status' => ['nullable', 'in:pending,paid,failed,cancelled'],
+            'cancellation_reason' => ['nullable', 'string', 'max:1000'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            if ($this->input('status') === 'cancelled' && ! filled($this->input('cancellation_reason'))) {
+                $validator->errors()->add('cancellation_reason', 'Debes indicar un motivo de cancelacion.');
+            }
+        });
     }
 }

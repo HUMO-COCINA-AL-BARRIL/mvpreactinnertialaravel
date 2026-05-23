@@ -47,7 +47,7 @@ export default function Header({ business = {}, onToggleCart = () => {} }) {
                                     <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.847L19.335 24 12 20.201 4.665 24 6 15.595 0 9.748l8.332-1.73z"/></svg>
                                     <span className="font-medium">{rating.toFixed(1)}</span>
                                 </span>
-                                <span className={`px-2 py-0.5 rounded-full text-xs ${business.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`px-2 py-0.5 rounded-full text-xs ${business.isOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
                                     {status}
                                 </span>
                             </div>

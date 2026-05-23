@@ -28,7 +28,7 @@ class StoreOrderRequest extends FormRequest
             'delivery_address' => ['nullable', 'string', 'max:255'],
             'delivery_fee_id' => ['nullable', 'exists:delivery_fees,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'payment_method' => ['required', 'in:online,cash_on_delivery,on_site'],
+            'payment_method' => ['required', 'in:online,cash,transfer'],
             'payment_provider' => ['nullable', 'in:wompi,mercadopago,payu'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
@@ -55,6 +55,10 @@ class StoreOrderRequest extends FormRequest
         $validator->after(function ($validator): void {
             if ($this->input('delivery_method') === 'delivery' && ! $this->input('delivery_fee_id')) {
                 $validator->errors()->add('delivery_fee_id', 'Selecciona una tarifa de domicilio.');
+            }
+
+            if ($this->input('payment_method') === 'online' && ! $this->input('payment_provider')) {
+                $validator->errors()->add('payment_provider', 'Selecciona una pasarela para el pago online.');
             }
         });
     }

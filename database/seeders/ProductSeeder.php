@@ -30,12 +30,12 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name' => 'COSTICHI',
-                'short_description' => 'Corte de 400 gramos de carne costilla y chicharrón.',
+                'short_description' => 'Corte de 400 gramos de carne costilla y chicharron.',
                 'price' => 45000,
             ],
             [
                 'name' => 'BONDIOLA DE CERDO',
-                'short_description' => '400 gramos de carne de cerdo premium más acompañamiento.',
+                'short_description' => '400 gramos de carne de cerdo premium mas acompanamiento.',
                 'price' => 40000,
             ],
             [
@@ -49,8 +49,8 @@ class ProductSeeder extends Seeder
                 'price' => 25000,
             ],
             [
-                'name' => 'Frijolada del día',
-                'short_description' => 'Frijolada del día: semana 25.000, fin de semana 30.000.',
+                'name' => 'Frijolada del dia',
+                'short_description' => 'Frijolada del dia: semana 25.000, fin de semana 30.000.',
                 'price' => 25000,
             ],
         ];

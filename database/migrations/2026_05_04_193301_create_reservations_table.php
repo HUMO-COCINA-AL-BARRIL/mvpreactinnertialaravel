@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('occasion')->default('otro');
             $table->text('notes')->nullable();
             $table->string('status')->default('pending');
-            $table->string('whatsapp_link')->nullable();
+            $table->text('whatsapp_link')->nullable();
             $table->timestamps();
         });
     }

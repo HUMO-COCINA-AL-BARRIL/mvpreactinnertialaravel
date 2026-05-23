@@ -1,6 +1,8 @@
-﻿import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import ImageUploadField from '@/Components/ImageUploadField';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 const initialValues = {
     name: '',
@@ -20,12 +22,8 @@ function SwitchButton({ checked, onChange, label }) {
             onClick={() => onChange(!checked)}
             className="inline-flex items-center gap-3"
         >
-            <span
-                className={`relative h-6 w-11 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-slate-300'}`}
-            >
-                <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
-                />
+            <span className={`relative h-6 w-11 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${checked ? 'left-[22px]' : 'left-0.5'}`} />
             </span>
             <span className="text-sm text-slate-700">{label}</span>
         </button>
@@ -33,14 +31,15 @@ function SwitchButton({ checked, onChange, label }) {
 }
 
 export default function AdminCategoriesIndex({ auth, categories = [] }) {
-    const { flash } = usePage().props;
     const [editingId, setEditingId] = useState(null);
     const [preview, setPreview] = useState(null);
     const form = useForm(initialValues);
+    const selectedImageName = form.data.image?.name || null;
 
     const resetForm = () => {
         form.reset();
         form.clearErrors();
+        form.transform((data) => data);
         setEditingId(null);
         setPreview(null);
     };
@@ -48,19 +47,48 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
     const submit = (e) => {
         e.preventDefault();
 
-        const options = {
-            forceFormData: true,
-            onSuccess: () => resetForm(),
-        };
-
         if (editingId) {
-            form.transform((data) => ({ ...data, _method: 'put' }))
-                .post(route('admin.categories.update', editingId), options);
+            if (form.data.image) {
+                form.transform((data) => ({ ...data, _method: 'put' }));
+                form.post(route('admin.categories.update', editingId), {
+                    forceFormData: true,
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Categoria actualizada correctamente.');
+                        resetForm();
+                    },
+                    onError: (errors) => {
+                        toast.error(Object.values(errors)[0] || 'No se pudo actualizar la categoria.');
+                    },
+                });
+                return;
+            }
+
+            form.put(route('admin.categories.update', editingId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Categoria actualizada correctamente.');
+                    resetForm();
+                },
+                onError: (errors) => {
+                    toast.error(Object.values(errors)[0] || 'No se pudo actualizar la categoria.');
+                },
+            });
             return;
         }
 
         form.transform((data) => data);
-        form.post(route('admin.categories.store'), options);
+        form.post(route('admin.categories.store'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Categoria creada correctamente.');
+                resetForm();
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] || 'No se pudo crear la categoria.');
+            },
+        });
     };
 
     const startEdit = (category) => {
@@ -77,63 +105,81 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
     };
 
     const removeCategory = (category) => {
-        if (!window.confirm(`¿Eliminar la categoría "${category.name}"?`)) return;
-        form.delete(route('admin.categories.destroy', category.id));
+        if (!window.confirm(`Eliminar la categoria "${category.name}"?`)) return;
+
+        form.delete(route('admin.categories.destroy', category.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Categoria eliminada correctamente.');
+                if (editingId === category.id) {
+                    resetForm();
+                }
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] || 'No se pudo eliminar la categoria.');
+            },
+        });
+    };
+
+    const clearImage = () => {
+        form.setData('image', null);
+
+        if (editingId) {
+            const editingCategory = categories.find((category) => category.id === editingId);
+            setPreview(editingCategory?.image_url || null);
+            return;
+        }
+
+        setPreview(null);
     };
 
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-slate-900 leading-tight">Categorías</h2>}
+            header={<h2 className="font-semibold text-xl text-slate-900 leading-tight">Categorias</h2>}
         >
-            <Head title="Categorías" />
+            <Head title="Categorias" />
 
             <div className="py-10">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                    {flash?.success && (
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-                            {flash.success}
-                        </div>
-                    )}
-
+                <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <div className="border-b border-slate-200 px-6 py-4">
-                            <h3 className="font-semibold text-slate-900">{editingId ? 'Editar categoría' : 'Nueva categoría'}</h3>
+                            <h3 className="font-semibold text-slate-900">{editingId ? 'Editar categoria' : 'Nueva categoria'}</h3>
                         </div>
 
-                        <form onSubmit={submit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <form onSubmit={submit} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Nombre</label>
                                 <input className="mt-1 w-full rounded-xl border-slate-300" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-                                {form.errors.name && <p className="text-sm text-red-600 mt-1">{form.errors.name}</p>}
+                                {form.errors.name && <p className="mt-1 text-sm text-red-600">{form.errors.name}</p>}
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Orden</label>
                                 <input type="number" min="0" className="mt-1 w-full rounded-xl border-slate-300" value={form.data.sort_order} onChange={(e) => form.setData('sort_order', e.target.value)} />
-                                <p className="text-xs text-slate-500 mt-1">Si lo dejas vacío, se asigna automáticamente.</p>
-                                {form.errors.sort_order && <p className="text-sm text-red-600 mt-1">{form.errors.sort_order}</p>}
+                                <p className="mt-1 text-xs text-slate-500">Si lo dejas vacio, se asigna automaticamente.</p>
+                                {form.errors.sort_order && <p className="mt-1 text-sm text-red-600">{form.errors.sort_order}</p>}
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-sm font-medium text-slate-700">Descripción</label>
+                                <label className="text-sm font-medium text-slate-700">Descripcion</label>
                                 <textarea className="mt-1 w-full rounded-xl border-slate-300" rows={3} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-sm font-medium text-slate-700">Imagen</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="mt-1 w-full rounded-xl border-slate-300"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0] || null;
+                                <ImageUploadField
+                                    label="Imagen"
+                                    preview={preview}
+                                    fileName={selectedImageName}
+                                    error={form.errors.image}
+                                    helpText="Formatos sugeridos: JPG, PNG o WEBP. Usa una imagen representativa para la categoria."
+                                    currentText="Usando imagen actual de la categoria."
+                                    onFileChange={(file) => {
                                         form.setData('image', file);
                                         setPreview(file ? URL.createObjectURL(file) : preview);
                                     }}
+                                    onClear={clearImage}
                                 />
-                                {form.errors.image && <p className="text-sm text-red-600 mt-1">{form.errors.image}</p>}
-                                {preview && <img src={preview} alt="preview categoria" className="mt-3 h-24 w-24 rounded-lg object-cover border border-slate-200" />}
                             </div>
 
                             <div className="md:col-span-2 flex flex-wrap gap-6">
@@ -143,7 +189,7 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
 
                             <div className="md:col-span-2 flex gap-3">
                                 <button type="submit" className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-70" disabled={form.processing}>
-                                    {editingId ? 'Actualizar categoría' : 'Crear categoría'}
+                                    {editingId ? 'Actualizar categoria' : 'Crear categoria'}
                                 </button>
                                 {editingId && (
                                     <button type="button" className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" onClick={resetForm}>
@@ -154,15 +200,15 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
                         </form>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <div className="border-b border-slate-200 px-6 py-4">
-                            <h3 className="font-semibold text-slate-900">Listado de categorías</h3>
+                            <h3 className="font-semibold text-slate-900">Listado de categorias</h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-slate-50 text-slate-500">
                                     <tr>
-                                        <th className="px-6 py-3 text-left font-medium">Categoría</th>
+                                        <th className="px-6 py-3 text-left font-medium">Categoria</th>
                                         <th className="px-6 py-3 text-left font-medium">Orden</th>
                                         <th className="px-6 py-3 text-left font-medium">Productos</th>
                                         <th className="px-6 py-3 text-left font-medium">Estado</th>
@@ -206,4 +252,3 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
         </AuthenticatedLayout>
     );
 }
-

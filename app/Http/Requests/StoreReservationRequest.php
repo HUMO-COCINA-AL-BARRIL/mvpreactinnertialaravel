@@ -26,7 +26,7 @@ class StoreReservationRequest extends FormRequest
             'phone' => ['required', 'string', 'max:30'],
             'reservation_date' => ['required', 'date', 'after_or_equal:today'],
             'reservation_time' => ['required', 'date_format:H:i'],
-            'people_count' => ['required', 'integer', 'min:1', 'max:30'],
+            'people_count' => ['required', 'integer', 'min:1', 'max:200'],
             'occasion' => ['required', 'in:cumpleanos,aniversario,reunion_familiar,otro'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];

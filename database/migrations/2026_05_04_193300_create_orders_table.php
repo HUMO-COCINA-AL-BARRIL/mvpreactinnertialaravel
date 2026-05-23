@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->unsignedBigInteger('subtotal');
             $table->unsignedBigInteger('total');
-            $table->string('whatsapp_link')->nullable();
+            $table->text('whatsapp_link')->nullable();
             $table->timestamps();
         });
     }

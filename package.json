@@ -23,6 +23,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^1.14.0",
+        "react-hot-toast": "^2.6.0",
         "react-phone-input-2": "^2.15.1",
         "tailwind-merge": "^3.5.0"
     }

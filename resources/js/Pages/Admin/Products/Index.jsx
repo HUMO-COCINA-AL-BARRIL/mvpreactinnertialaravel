@@ -1,6 +1,8 @@
-﻿import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import ImageUploadField from '@/Components/ImageUploadField';
+import { Head, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 const initialValues = {
     category_id: '',
@@ -23,12 +25,8 @@ function SwitchButton({ checked, onChange, label }) {
             onClick={() => onChange(!checked)}
             className="inline-flex items-center gap-3"
         >
-            <span
-                className={`relative h-6 w-11 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-slate-300'}`}
-            >
-                <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${checked ? 'left-[22px]' : 'left-0.5'}`}
-                />
+            <span className={`relative h-6 w-11 rounded-full transition ${checked ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${checked ? 'left-[22px]' : 'left-0.5'}`} />
             </span>
             <span className="text-sm text-slate-700">{label}</span>
         </button>
@@ -36,16 +34,17 @@ function SwitchButton({ checked, onChange, label }) {
 }
 
 export default function AdminProductsIndex({ auth, products = [], categories = [] }) {
-    const { flash } = usePage().props;
     const [editingId, setEditingId] = useState(null);
     const [preview, setPreview] = useState(null);
 
     const form = useForm(initialValues);
     const currency = useMemo(() => new Intl.NumberFormat('es-CO'), []);
+    const selectedImageName = form.data.image?.name || null;
 
     const resetForm = () => {
         form.reset();
         form.clearErrors();
+        form.transform((data) => data);
         setEditingId(null);
         setPreview(null);
     };
@@ -53,19 +52,48 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
     const submit = (e) => {
         e.preventDefault();
 
-        const options = {
-            forceFormData: true,
-            onSuccess: () => resetForm(),
-        };
-
         if (editingId) {
-            form.transform((data) => ({ ...data, _method: 'put' }))
-                .post(route('admin.products.update', editingId), options);
+            if (form.data.image) {
+                form.transform((data) => ({ ...data, _method: 'put' }));
+                form.post(route('admin.products.update', editingId), {
+                    forceFormData: true,
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Producto actualizado correctamente.');
+                        resetForm();
+                    },
+                    onError: (errors) => {
+                        toast.error(Object.values(errors)[0] || 'No se pudo actualizar el producto.');
+                    },
+                });
+                return;
+            }
+
+            form.put(route('admin.products.update', editingId), {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Producto actualizado correctamente.');
+                    resetForm();
+                },
+                onError: (errors) => {
+                    toast.error(Object.values(errors)[0] || 'No se pudo actualizar el producto.');
+                },
+            });
             return;
         }
 
         form.transform((data) => data);
-        form.post(route('admin.products.store'), options);
+        form.post(route('admin.products.store'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Producto creado correctamente.');
+                resetForm();
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] || 'No se pudo crear el producto.');
+            },
+        });
     };
 
     const startEdit = (product) => {
@@ -85,8 +113,32 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
     };
 
     const removeProduct = (id) => {
-        if (!window.confirm('¿Seguro que deseas eliminar este producto?')) return;
-        form.delete(route('admin.products.destroy', id));
+        if (!window.confirm('Eliminar este producto?')) return;
+
+        form.delete(route('admin.products.destroy', id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Producto eliminado correctamente.');
+                if (editingId === id) {
+                    resetForm();
+                }
+            },
+            onError: (errors) => {
+                toast.error(Object.values(errors)[0] || 'No se pudo eliminar el producto.');
+            },
+        });
+    };
+
+    const clearImage = () => {
+        form.setData('image', null);
+
+        if (editingId) {
+            const editingProduct = products.find((product) => product.id === editingId);
+            setPreview(editingProduct?.image_url || editingProduct?.image || null);
+            return;
+        }
+
+        setPreview(null);
     };
 
     return (
@@ -97,77 +149,73 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
             <Head title="Productos" />
 
             <div className="py-10">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                    {flash?.success && (
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
-                            {flash.success}
-                        </div>
-                    )}
-
+                <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <div className="border-b border-slate-200 px-6 py-4">
                             <h3 className="font-semibold text-slate-900">{editingId ? 'Editar producto' : 'Nuevo producto'}</h3>
                         </div>
 
-                        <form onSubmit={submit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <form onSubmit={submit} className="grid grid-cols-1 gap-4 p-6 md:grid-cols-2">
                             <div>
-                                <label className="text-sm font-medium text-slate-700">Categoría</label>
+                                <label className="text-sm font-medium text-slate-700">Categoria</label>
                                 <select
                                     className="mt-1 w-full rounded-xl border-slate-300"
                                     value={form.data.category_id}
                                     onChange={(e) => form.setData('category_id', e.target.value)}
                                 >
-                                    <option value="">Selecciona una categoría</option>
+                                    <option value="">Selecciona una categoria</option>
                                     {categories.map((category) => (
-                                        <option key={category.id} value={category.id}>{category.name}</option>
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
                                     ))}
                                 </select>
-                                {form.errors.category_id && <p className="text-sm text-red-600 mt-1">{form.errors.category_id}</p>}
+                                {form.errors.category_id && <p className="mt-1 text-sm text-red-600">{form.errors.category_id}</p>}
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Nombre</label>
                                 <input className="mt-1 w-full rounded-xl border-slate-300" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-                                {form.errors.name && <p className="text-sm text-red-600 mt-1">{form.errors.name}</p>}
+                                {form.errors.name && <p className="mt-1 text-sm text-red-600">{form.errors.name}</p>}
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Precio</label>
                                 <input type="number" min="0" className="mt-1 w-full rounded-xl border-slate-300" value={form.data.price} onChange={(e) => form.setData('price', e.target.value)} />
-                                {form.errors.price && <p className="text-sm text-red-600 mt-1">{form.errors.price}</p>}
+                                {form.errors.price && <p className="mt-1 text-sm text-red-600">{form.errors.price}</p>}
                             </div>
 
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Stock</label>
                                 <input type="number" min="0" className="mt-1 w-full rounded-xl border-slate-300" value={form.data.stock} onChange={(e) => form.setData('stock', e.target.value)} />
-                                <p className="text-xs text-slate-500 mt-1">0 significa venta sobre pedido (sí se puede comprar).</p>
-                                {form.errors.stock && <p className="text-sm text-red-600 mt-1">{form.errors.stock}</p>}
+                                <p className="mt-1 text-xs text-slate-500">0 significa venta sobre pedido y aun se puede comprar.</p>
+                                {form.errors.stock && <p className="mt-1 text-sm text-red-600">{form.errors.stock}</p>}
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-sm font-medium text-slate-700">Descripción corta</label>
+                                <label className="text-sm font-medium text-slate-700">Descripcion corta</label>
                                 <input className="mt-1 w-full rounded-xl border-slate-300" value={form.data.short_description} onChange={(e) => form.setData('short_description', e.target.value)} />
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-sm font-medium text-slate-700">Descripción completa</label>
+                                <label className="text-sm font-medium text-slate-700">Descripcion completa</label>
                                 <textarea className="mt-1 w-full rounded-xl border-slate-300" rows={3} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="text-sm font-medium text-slate-700">Imagen</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="mt-1 w-full rounded-xl border-slate-300"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0] || null;
+                                <ImageUploadField
+                                    label="Imagen"
+                                    preview={preview}
+                                    fileName={selectedImageName}
+                                    error={form.errors.image}
+                                    helpText="Formatos sugeridos: JPG, PNG o WEBP. Una imagen clara mejora la presentacion del menu."
+                                    currentText="Usando imagen actual del producto."
+                                    onFileChange={(file) => {
                                         form.setData('image', file);
                                         setPreview(file ? URL.createObjectURL(file) : preview);
                                     }}
+                                    onClear={clearImage}
                                 />
-                                {form.errors.image && <p className="text-sm text-red-600 mt-1">{form.errors.image}</p>}
-                                {preview && <img src={preview} alt="preview" className="mt-3 h-24 w-24 rounded-lg object-cover border border-slate-200" />}
                             </div>
 
                             <div className="md:col-span-2 flex flex-wrap gap-6">
@@ -188,7 +236,7 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
                         </form>
                     </div>
 
-                    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <div className="border-b border-slate-200 px-6 py-4">
                             <h3 className="font-semibold text-slate-900">Listado de productos</h3>
                         </div>
@@ -197,7 +245,7 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
                                 <thead className="bg-slate-50 text-slate-500">
                                     <tr>
                                         <th className="px-6 py-3 text-left font-medium">Producto</th>
-                                        <th className="px-6 py-3 text-left font-medium">Categoría</th>
+                                        <th className="px-6 py-3 text-left font-medium">Categoria</th>
                                         <th className="px-6 py-3 text-left font-medium">Precio</th>
                                         <th className="px-6 py-3 text-left font-medium">Estado</th>
                                         <th className="px-6 py-3 text-left font-medium">Acciones</th>
@@ -212,7 +260,7 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
                                                     <span className="font-medium text-slate-900">{product.name}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-3 text-slate-600">{product.category?.name || 'Sin categoría'}</td>
+                                            <td className="px-6 py-3 text-slate-600">{product.category?.name || 'Sin categoria'}</td>
                                             <td className="px-6 py-3 text-slate-900">${currency.format(product.price)}</td>
                                             <td className="px-6 py-3">
                                                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.is_available ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
@@ -240,4 +288,3 @@ export default function AdminProductsIndex({ auth, products = [], categories = [
         </AuthenticatedLayout>
     );
 }
-

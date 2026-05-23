@@ -28,68 +28,90 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Iniciar sesion" />
 
-            {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
+            <div className="mb-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-500">Acceso privado</p>
+                <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">Inicia sesion</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                    Entra al panel de HUMO para gestionar productos, pedidos y operaciones del dia.
+                </p>
+            </div>
 
-            <form onSubmit={submit}>
+            {status && (
+                <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                    {status}
+                </div>
+            )}
+
+            <form onSubmit={submit} className="space-y-5">
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <InputLabel htmlFor="email" value="Correo" className="text-sm font-semibold text-slate-700" />
 
                     <TextInput
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        className="mt-2 block w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-none focus:border-amber-400 focus:bg-white focus:ring-amber-400"
                         autoComplete="username"
                         isFocused={true}
+                        placeholder="admin@humo.com"
                         onChange={(e) => setData('email', e.target.value)}
                     />
 
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                <div>
+                    <InputLabel htmlFor="password" value="Contrasena" className="text-sm font-semibold text-slate-700" />
 
                     <TextInput
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
+                        className="mt-2 block w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-none focus:border-amber-400 focus:bg-white focus:ring-amber-400"
                         autoComplete="current-password"
+                        placeholder="Ingresa tu contrasena"
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="block mt-4">
-                    <label className="flex items-center">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <label className="flex items-center gap-3">
                         <Checkbox
                             name="remember"
                             checked={data.remember}
+                            className="rounded border-slate-300 text-amber-500 shadow-none focus:ring-amber-400"
                             onChange={(e) => setData('remember', e.target.checked)}
                         />
-                        <span className="ms-2 text-sm text-gray-600">Remember me</span>
+                        <span className="text-sm text-slate-600">Recordarme</span>
                     </label>
-                </div>
 
-                <div className="flex items-center justify-end mt-4">
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            className="text-sm font-medium text-slate-500 transition hover:text-amber-600 focus:outline-none"
                         >
-                            Forgot your password?
+                            Olvidaste tu contrasena?
                         </Link>
                     )}
+                </div>
 
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
+                <div className="pt-2">
+                    <PrimaryButton
+                        className="w-full justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold uppercase tracking-[0.24em] hover:bg-amber-500 focus:bg-amber-500 focus:ring-amber-400"
+                        disabled={processing}
+                    >
+                        Entrar al panel
                     </PrimaryButton>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-6 text-slate-500">
+                    Acceso exclusivo para administracion. Si necesitas soporte de ingreso, valida tus credenciales con el equipo interno.
                 </div>
             </form>
         </GuestLayout>

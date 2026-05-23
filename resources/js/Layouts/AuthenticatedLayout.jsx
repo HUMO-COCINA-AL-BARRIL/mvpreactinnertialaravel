@@ -1,82 +1,194 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { LayoutDashboard, Package, Shapes, Bike, PanelLeftClose, PanelLeftOpen, Store, Power, CalendarDays, Camera, ShoppingCart } from 'lucide-react';
 
 export default function Authenticated({ user, header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const { business } = usePage().props;
+    const isBusinessOpen = business?.isOpen ?? true;
+    const businessName = business?.name ?? 'HUMO Cocina al Barril';
+
+    const toggleBusinessStatus = () => {
+        router.patch(
+            route('admin.business-status.update'),
+            {},
+            {
+                preserveScroll: true,
+            }
+        );
+    };
+
+    const navigation = [
+        { label: 'Dashboard', href: route('dashboard'), active: route().current('dashboard'), icon: LayoutDashboard },
+        { label: 'Productos', href: route('admin.products.index'), active: route().current('admin.products.*'), icon: Package },
+        { label: 'Categorias', href: route('admin.categories.index'), active: route().current('admin.categories.*'), icon: Shapes },
+        { label: 'Domicilios', href: route('admin.delivery-fees.index'), active: route().current('admin.delivery-fees.*'), icon: Bike },
+        { label: 'Pedidos RT', href: route('admin.orders.index'), active: route().current('admin.orders.*'), icon: ShoppingCart },
+        { label: 'Reservas', href: route('admin.reservations.index'), active: route().current('admin.reservations.*'), icon: CalendarDays },
+        { label: 'Momentos', href: route('admin.moments.index'), active: route().current('admin.moments.*'), icon: Camera },
+    ];
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            <nav className="bg-white border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16">
-                        <div className="flex">
-                            <div className="shrink-0 flex items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
+        <div className="min-h-screen bg-[#f5f1ea] text-slate-900">
+            <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:block">
+                <aside className={`flex h-full flex-col border-r border-white/10 bg-[#171717] px-4 py-5 text-white shadow-2xl transition-all duration-300 ${sidebarOpen ? 'w-[280px]' : 'w-[104px]'}`}>
+                    <div className={`rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_18px_40px_rgba(0,0,0,0.18)] ${sidebarOpen ? '' : 'px-2.5 py-3'}`}>
+                        <div className={`flex items-center ${sidebarOpen ? 'justify-between gap-3' : 'flex-col gap-2'}`}>
+                            <Link href="/" className={`flex min-w-0 items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
+                                <div className="relative">
+                                    <div className="absolute inset-0 rounded-2xl bg-amber-400/20 blur-md" />
+                                    <ApplicationLogo className="relative h-14 w-14 rounded-2xl object-cover ring-1 ring-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.25)]" />
+                                </div>
+                                {sidebarOpen && (
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-300">HUMO</p>
+                                        <p className="truncate text-base font-semibold text-white">Panel administrativo</p>
+                                        <p className="mt-1 text-xs text-white/45">Control del menu, pedidos y reservas</p>
+                                    </div>
+                                )}
+                            </Link>
+
+                            <button
+                                type="button"
+                                onClick={() => setSidebarOpen((value) => !value)}
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-black/25 text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-amber-300/30 hover:bg-white/10 hover:text-white"
+                                title={sidebarOpen ? 'Contraer sidebar' : 'Expandir sidebar'}
+                            >
+                                {sidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 space-y-2">
+                        {navigation.map((item) => {
+                            const Icon = item.icon;
+
+                            return (
+                                <Link
+                                    key={item.label}
+                                    href={item.href}
+                                    className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                                        item.active
+                                            ? 'bg-amber-400 text-black shadow-[0_12px_30px_rgba(251,191,36,0.25)]'
+                                            : 'text-white/68 hover:bg-white/8 hover:text-white'
+                                    } ${sidebarOpen ? 'justify-start' : 'justify-center'}`}
+                                >
+                                    <Icon className="h-5 w-5 shrink-0" />
+                                    {sidebarOpen && <span>{item.label}</span>}
+                                </Link>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-3">
+                        <div className={`flex items-start gap-3 ${sidebarOpen ? '' : 'justify-center'}`}>
+                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isBusinessOpen ? 'bg-emerald-400/15 text-emerald-300' : 'bg-rose-400/15 text-rose-300'}`}>
+                                <Store className="h-5 w-5" />
+                            </span>
+
+                            {sidebarOpen && (
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-sm font-semibold text-white">Estado del comercio</p>
+                                    <p className="mt-1 text-xs leading-5 text-white/55">
+                                        {isBusinessOpen ? `${businessName} esta recibiendo pedidos.` : `${businessName} esta pausado para nuevos pedidos.`}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={toggleBusinessStatus}
+                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                                isBusinessOpen
+                                    ? 'bg-rose-500/12 text-rose-200 hover:bg-rose-500/18'
+                                    : 'bg-emerald-500/12 text-emerald-200 hover:bg-emerald-500/18'
+                            }`}
+                            title={isBusinessOpen ? 'Cerrar comercio para pedidos' : 'Abrir comercio para pedidos'}
+                        >
+                            <Power className="h-4 w-4" />
+                            {sidebarOpen ? (isBusinessOpen ? 'Cerrar pedidos' : 'Abrir pedidos') : null}
+                        </button>
+                    </div>
+
+                    <div className="mt-auto rounded-[1.75rem] border border-white/10 bg-white/5 p-4">
+                        <div className={`flex items-center gap-3 ${sidebarOpen ? '' : 'justify-center'}`}>
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-400 font-bold text-black">
+                                {user.name?.slice(0, 1).toUpperCase()}
+                            </span>
+                            {sidebarOpen && (
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-white">{user.name}</p>
+                                    <p className="truncate text-xs text-white/50">{user.email}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {sidebarOpen && (
+                            <div className="mt-4 space-y-2">
+                                <Link
+                                    href={route('profile.edit')}
+                                    className="block rounded-xl px-3 py-2 text-sm text-white/70 transition hover:bg-white/8 hover:text-white"
+                                >
+                                    Perfil
+                                </Link>
+                                <Link
+                                    href={route('logout')}
+                                    method="post"
+                                    as="button"
+                                    className="block w-full rounded-xl px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-rose-500/10 hover:text-rose-200"
+                                >
+                                    Cerrar sesion
                                 </Link>
                             </div>
+                        )}
+                    </div>
+                </aside>
+            </div>
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    Dashboard
-                                </NavLink>
-                                <NavLink href={route('admin.products.index')} active={route().current('admin.products.*')}>
-                                    Productos
-                                </NavLink>
-                                <NavLink href={route('admin.categories.index')} active={route().current('admin.categories.*')}>
-                                    Categorías
-                                </NavLink>
-                                <NavLink href={route('admin.delivery-fees.index')} active={route().current('admin.delivery-fees.*')}>
-                                    Domicilios
-                                </NavLink>
+            <div className={`${sidebarOpen ? 'lg:pl-[280px]' : 'lg:pl-[104px]'} transition-all duration-300`}>
+                <nav className="sticky top-0 z-30 border-b border-slate-200/80 bg-[#f5f1ea]/95 backdrop-blur lg:hidden">
+                    <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between px-4 sm:px-6">
+                        <Link href="/" className="inline-flex items-center gap-3">
+                            <ApplicationLogo className="h-11 w-11 rounded-2xl object-cover" />
+                            <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-amber-600">HUMO</p>
+                                <p className="text-sm font-semibold text-slate-900">Panel administrativo</p>
                             </div>
-                        </div>
+                        </Link>
 
-                        <div className="hidden sm:flex sm:items-center sm:ms-6">
-                            <div className="ms-3 relative">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
-                                            >
-                                                {user.name}
+                        <div className="flex items-center gap-2">
+                            <Dropdown>
+                                <Dropdown.Trigger>
+                                    <span className="inline-flex rounded-full">
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm"
+                                        >
+                                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 font-bold text-black">
+                                                {user.name?.slice(0, 1).toUpperCase()}
+                                            </span>
+                                        </button>
+                                    </span>
+                                </Dropdown.Trigger>
 
-                                                <svg
-                                                    className="ms-2 -me-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
+                                <Dropdown.Content contentClasses="rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
+                                    <Dropdown.Link href={route('profile.edit')} className="rounded-xl text-slate-700 hover:bg-slate-100 focus:bg-slate-100">
+                                        Perfil
+                                    </Dropdown.Link>
+                                    <Dropdown.Link href={route('logout')} method="post" as="button" className="rounded-xl text-rose-600 hover:bg-rose-50 focus:bg-rose-50">
+                                        Cerrar sesion
+                                    </Dropdown.Link>
+                                </Dropdown.Content>
+                            </Dropdown>
 
-                                    <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>Profile</Dropdown.Link>
-                                        <Dropdown.Link href={route('logout')} method="post" as="button">
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
                             <button
                                 onClick={() => setShowingNavigationDropdown((previousState) => !previousState)}
-                                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+                                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none"
                             >
                                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path
@@ -97,48 +209,44 @@ export default function Authenticated({ user, header, children }) {
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
-                        <div className="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
-                            Dashboard
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink href={route('admin.products.index')} active={route().current('admin.products.*')}>
-                            Productos
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink href={route('admin.categories.index')} active={route().current('admin.categories.*')}>
-                            Categorías
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink href={route('admin.delivery-fees.index')} active={route().current('admin.delivery-fees.*')}>
-                            Domicilios
-                        </ResponsiveNavLink>
-                    </div>
+                    <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' border-t border-slate-200 bg-white'}>
+                        <div className="space-y-1 px-4 py-4">
+                            <button
+                                type="button"
+                                onClick={toggleBusinessStatus}
+                                className={`mb-3 flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-semibold ${
+                                    isBusinessOpen
+                                        ? 'bg-emerald-50 text-emerald-700'
+                                        : 'bg-rose-50 text-rose-700'
+                                }`}
+                            >
+                                <span>{isBusinessOpen ? 'Recibiendo pedidos' : 'Pedidos pausados'}</span>
+                                <span>{isBusinessOpen ? 'Cerrar' : 'Abrir'}</span>
+                            </button>
 
-                    <div className="pt-4 pb-1 border-t border-gray-200">
-                        <div className="px-4">
-                            <div className="font-medium text-base text-gray-800">{user.name}</div>
-                            <div className="font-medium text-sm text-gray-500">{user.email}</div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
-                            <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
-                            </ResponsiveNavLink>
+                            {navigation.map((item) => (
+                                <ResponsiveNavLink
+                                    key={item.label}
+                                    href={item.href}
+                                    active={item.active}
+                                    className="rounded-2xl border-l-0 px-4 py-3"
+                                >
+                                    {item.label}
+                                </ResponsiveNavLink>
+                            ))}
                         </div>
                     </div>
-                </div>
-            </nav>
+                </nav>
 
-            {header && (
-                <header className="bg-white border-b border-slate-200">
-                    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">{header}</div>
-                </header>
-            )}
+                {header && (
+                    <header className="relative z-10">
+                        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{header}</div>
+                    </header>
+                )}
 
-            <main>{children}</main>
+                <main className="relative z-10">{children}</main>
+            </div>
         </div>
     );
 }
-
