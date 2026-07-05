@@ -15,21 +15,32 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
     const [showCart, setShowCart] = useState(false);
     const closeCart = () => setShowCart(false);
     const resolvedBusiness = sharedBusiness ?? business;
+    const theme = resolvedBusiness.theme ?? {};
 
     return (
-        <>
+        <div
+            style={{
+                '--brand-navbar-bg': theme.navbarBackgroundColor,
+                '--brand-navbar-text': theme.navbarTextColor,
+                '--brand-primary': theme.primaryButtonColor,
+                '--brand-primary-text': theme.primaryButtonTextColor,
+                '--brand-section-bg': theme.sectionBackgroundColor,
+                '--brand-surface-bg': theme.sectionSurfaceColor,
+                '--brand-cta-bg': theme.ctaBackgroundColor,
+            }}
+        >
             <Header business={resolvedBusiness} onToggleCart={() => setShowCart((s) => !s)} />
 
             <main className={mainClassName}>
                 {children}
             </main>
 
-            <footer className="border-t border-white/10 bg-[linear-gradient(180deg,#060606_0%,#111111_100%)]">
+            <footer className="border-t border-white/10" style={{ background: `linear-gradient(180deg, ${theme.sectionBackgroundColor || '#060606'} 0%, ${theme.ctaBackgroundColor || '#111111'} 100%)` }}>
                 <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 lg:grid-cols-[0.95fr_1.05fr]">
                     <div className="space-y-6">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">HUMO Cocina al Barril</p>
-                            <h2 className="mt-3 text-3xl font-black tracking-tight text-white">Visitanos en Manizales o pide directo por WhatsApp</h2>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>{resolvedBusiness.name}</p>
+                            <h2 className="mt-3 text-3xl font-black tracking-tight text-white">Visitanos o pide directo por WhatsApp</h2>
                             <p className="mt-4 max-w-xl text-sm leading-7 text-neutral-400">
                                 Un punto pensado para compartir cortes al barril, reservas especiales y pedidos rapidos en un solo lugar.
                             </p>
@@ -37,16 +48,17 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Ubicacion</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Ubicacion</p>
                                 <p className="mt-3 text-base font-semibold text-white">Carrera 23 #74-114</p>
                                 <p className="mt-1 text-sm text-neutral-400">Sector El Perro, Manizales, Colombia</p>
                             </div>
 
                             <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Contacto</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Contacto</p>
                                 <a
                                     href="tel:+573001234567"
-                                    className="mt-3 block text-base font-semibold text-white transition hover:text-amber-300"
+                                    className="mt-3 block text-base font-semibold text-white transition"
+                                    style={{ '--hover-color': 'var(--brand-primary)' }}
                                 >
                                     +57 300 123 4567
                                 </a>
@@ -61,13 +73,13 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
                             </div>
 
                             <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Horarios</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Horarios</p>
                                 <p className="mt-3 text-sm text-neutral-200">Lunes a jueves: 12:00 m. - 10:00 p. m.</p>
                                 <p className="mt-1 text-sm text-neutral-400">Viernes a domingo: 12:00 m. - 11:00 p. m.</p>
                             </div>
 
                             <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Accesos</p>
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Accesos</p>
                                 <div className="mt-3 space-y-2 text-sm">
                                     <a href="/" className="block text-neutral-200 transition hover:text-white">Inicio</a>
                                     <a href="/menu" className="block text-neutral-400 transition hover:text-white">Menu digital</a>
@@ -85,7 +97,7 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
 
                     <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/20 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
                         <div className="border-b border-white/10 px-5 py-4">
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Mapa</p>
+                            <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Mapa</p>
                             <p className="mt-2 text-lg font-bold text-white">Como llegar a HUMO</p>
                         </div>
 
@@ -104,7 +116,7 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
                                 href="https://www.google.com/maps/search/?api=1&query=Carrera+23+%2374-114+Manizales+Colombia"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex justify-center rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-black transition hover:bg-amber-400"
+                                className="brand-button inline-flex justify-center rounded-2xl px-5 py-3 text-sm font-bold"
                             >
                                 Abrir en Google Maps
                             </a>
@@ -112,7 +124,7 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
                                 href="https://wa.me/573001234567?text=Hola%20HUMO,%20quiero%20pedir%20o%20reservar"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                                className="brand-dark-button inline-flex justify-center rounded-2xl px-5 py-3 text-sm font-semibold"
                             >
                                 Pedir o reservar
                             </a>
@@ -122,6 +134,6 @@ export default function PublicLayout({ children, business = defaultBusiness, mai
             </footer>
 
             <CartDrawer show={showCart} onClose={closeCart} />
-        </>
+        </div>
     );
 }

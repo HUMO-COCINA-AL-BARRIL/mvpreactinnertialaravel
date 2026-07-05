@@ -32,7 +32,7 @@ export default function ForgotPassword({ status }) {
                     type="email"
                     name="email"
                     value={data.email}
-                    className="mt-1 block w-full"
+                    className="brand-auth-input mt-1 block w-full rounded-2xl px-4 py-3"
                     isFocused={true}
                     onChange={(e) => setData('email', e.target.value)}
                 />
@@ -40,7 +40,7 @@ export default function ForgotPassword({ status }) {
                 <InputError message={errors.email} className="mt-2" />
 
                 <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <PrimaryButton className="ms-4 rounded-2xl px-5 py-3 focus:ring-[var(--brand-primary)]" disabled={processing}>
                         Email Password Reset Link
                     </PrimaryButton>
                 </div>

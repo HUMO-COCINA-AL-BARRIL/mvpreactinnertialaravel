@@ -33,14 +33,14 @@ export default function ConfirmPassword() {
 
             <form onSubmit={submit}>
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
+                    <InputLabel htmlFor="password" value="Password" className="text-sm font-semibold text-slate-700" />
 
                     <TextInput
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
+                        className="brand-auth-input mt-1 block w-full rounded-2xl px-4 py-3"
                         isFocused={true}
                         onChange={(e) => setData('password', e.target.value)}
                     />
@@ -49,7 +49,7 @@ export default function ConfirmPassword() {
                 </div>
 
                 <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ms-4" disabled={processing}>
+                    <PrimaryButton className="ms-4 rounded-2xl px-5 py-3 focus:ring-[var(--brand-primary)]" disabled={processing}>
                         Confirm
                     </PrimaryButton>
                 </div>

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AdminProductController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminBusinessStatusController;
+use App\Http\Controllers\Admin\AdminCustomizationController;
 use App\Http\Controllers\Admin\AdminDeliveryFeeController;
 use App\Http\Controllers\Admin\AdminMomentController;
 use App\Http\Controllers\Admin\AdminOrderController;
@@ -49,11 +50,22 @@ Route::get('/reservation/availability', [ReservationController::class, 'availabi
 Route::post('/reservation', [ReservationController::class, 'store'])->name('reservation.store');
 Route::get('/reservation/thanks', [ReservationController::class, 'thanks'])->name('reservation.thanks');
 
-Route::get('/dashboard', [AdminDashboardController::class, '__invoke'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::get('admin/customization', [AdminCustomizationController::class, 'index'])
+        ->name('admin.customization.index');
+    Route::match(['put', 'post'], 'admin/customization', [AdminCustomizationController::class, 'update'])
+        ->name('admin.customization.update');
+});
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth', 'verified', 'admin', 'customization.complete'])->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, '__invoke'])
+        ->name('dashboard');
     Route::patch('admin/business-status', [AdminBusinessStatusController::class, 'update'])
         ->name('admin.business-status.update');
     Route::resource('admin/products', AdminProductController::class)
@@ -80,10 +92,6 @@ Route::middleware('auth')->group(function () {
         ->name('admin.reservations.availability');
     Route::patch('admin/reservations/settings', [AdminReservationController::class, 'updateSettings'])
         ->name('admin.reservations.settings.update');
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

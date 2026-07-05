@@ -28,7 +28,8 @@ function StarRating({ value, size = 'h-5 w-5' }) {
             {[1, 2, 3, 4, 5].map((starValue) => (
                 <Star
                     key={starValue}
-                    className={`${size} ${starValue <= Number(value) ? 'text-amber-300' : 'text-neutral-600'}`}
+                    className={`${size} ${starValue <= Number(value) ? '' : 'text-neutral-600'}`}
+                    style={starValue <= Number(value) ? { color: 'color-mix(in srgb, var(--brand-primary) 78%, white)' } : undefined}
                     fill="currentColor"
                 />
             ))}
@@ -239,7 +240,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                     <div className="relative mx-auto max-w-6xl px-6">
                         <div className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-3xl">
-                                <span className="inline-flex rounded-full border border-amber-400/25 bg-amber-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                                <span className="brand-dark-badge inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
                                     Feed HUMO
                                 </span>
                                 <h1 className="mt-5 text-4xl font-black tracking-tight text-white md:text-5xl">
@@ -267,10 +268,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                         </div>
 
                         <div className="mb-8 flex items-center justify-between">
-                            <Link
-                                href={route('landing')}
-                                className="inline-flex rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
-                            >
+                            <Link href={route('landing')} className="brand-dark-button inline-flex rounded-2xl px-4 py-2 text-sm font-semibold">
                                 Volver a la landing
                             </Link>
                             <p className="text-sm text-neutral-400">Orden: mas reciente primero</p>
@@ -291,7 +289,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                             </div>
                                         </div>
 
-                                        <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                                        <span className="brand-dark-badge rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
                                             Momento
                                         </span>
                                     </div>
@@ -336,7 +334,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                         <span className="md:hidden">Desliza para cambiar imagen</span>
                                                         <span className="hidden md:inline">Recorre las imagenes del momento</span>
                                                     </p>
-                                                    <p className="text-xs font-semibold text-amber-300">
+                                                    <p className="text-xs font-semibold" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                         {post.activeImageIndex + 1} / {post.images.length}
                                                     </p>
                                                 </div>
@@ -349,13 +347,13 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                             onClick={() => handleMomentImageChange(post.id, imageIndex)}
                                                             className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                                                                 post.activeImageIndex === imageIndex
-                                                                    ? 'border-amber-400 bg-amber-400/15 text-amber-300'
+                                                                    ? 'brand-dark-badge'
                                                                     : 'border-white/10 bg-white/5 text-neutral-300 hover:border-white/20 hover:text-white'
                                                             }`}
                                                             aria-label={`Ver paso ${imageIndex + 1}`}
                                                         >
                                                             <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                                                                post.activeImageIndex === imageIndex ? 'bg-amber-400 text-black' : 'bg-white/10 text-white'
+                                                                post.activeImageIndex === imageIndex ? 'brand-button' : 'bg-white/10 text-white'
                                                             }`}>
                                                                 {imageIndex + 1}
                                                             </span>
@@ -369,7 +367,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                         <div className="p-6">
                                             <div className="max-w-3xl">
                                                 <h2 className="text-3xl font-black tracking-tight text-white">{post.title}</h2>
-                                                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
+                                                <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                     {ratingLabels[post.rating] || 'Experiencia'}
                                                 </p>
                                                 <div className="mt-3">
@@ -392,7 +390,8 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleCommentToggle(post.id)}
-                                                        className={`inline-flex items-center gap-2 text-sm font-semibold transition ${post.showComments ? 'text-amber-300' : 'text-white hover:text-amber-300'}`}
+                                                        className={`inline-flex items-center gap-2 text-sm font-semibold transition ${post.showComments ? '' : 'text-white'}`}
+                                                        style={{ color: post.showComments ? 'color-mix(in srgb, var(--brand-primary) 72%, white)' : undefined }}
                                                     >
                                                         <MessageCircle className="h-5 w-5" />
                                                         {post.comments_count}
@@ -413,7 +412,8 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleCommentToggle(post.id)}
-                                                            className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300 transition hover:text-amber-200"
+                                                            className="text-xs font-semibold uppercase tracking-[0.16em] transition"
+                                                            style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}
                                                         >
                                                             {post.showComments ? 'Ocultar' : 'Ver'}
                                                         </button>
@@ -436,19 +436,19 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                                     value={post.commentNameDraft}
                                                                     onChange={(event) => handleCommentNameChange(post.id, event.target.value)}
                                                                     placeholder="Tu nombre (opcional)"
-                                                                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                                    className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                                                 />
                                                                 <textarea
                                                                     rows="3"
                                                                     value={post.commentDraft}
                                                                     onChange={(event) => handleCommentDraftChange(post.id, event.target.value)}
                                                                     placeholder="Deja un comentario sobre este momento"
-                                                                    className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                                    className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                                                 />
                                                                 <button
                                                                     type="submit"
                                                                     disabled={pendingActions[`comment-${post.id}`]}
-                                                                    className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-300 transition hover:bg-amber-400/15 disabled:opacity-60"
+                                                                    className="brand-dark-button rounded-2xl px-4 py-2 text-sm font-semibold disabled:opacity-60"
                                                                 >
                                                                     Comentar
                                                                 </button>

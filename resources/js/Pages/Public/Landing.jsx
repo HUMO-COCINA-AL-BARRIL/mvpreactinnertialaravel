@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Star, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -12,8 +12,8 @@ function ToggleButton({ children, active }) {
         <button
             className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold shadow-[0_12px_35px_rgba(0,0,0,0.22)] transition duration-200 ${
                 active
-                    ? 'border-amber-300 bg-[linear-gradient(135deg,#f59e0b_0%,#fbbf24_100%)] text-black'
-                    : 'border-white/10 bg-white text-neutral-900 hover:-translate-y-0.5 hover:border-amber-300'
+                    ? 'brand-button'
+                    : 'brand-soft-button hover:-translate-y-0.5'
             }`}
         >
             {children}
@@ -49,7 +49,8 @@ function StarRating({ value, onChange, interactive = false, size = 'h-5 w-5' }) 
                             key={starValue}
                             type="button"
                             onClick={() => onChange(starValue)}
-                            className={`rounded-full p-1 transition ${active ? 'text-amber-300' : 'text-neutral-600 hover:text-amber-200'}`}
+                            className={`rounded-full p-1 transition ${active ? '' : 'text-neutral-600'}`}
+                            style={active ? { color: 'color-mix(in srgb, var(--brand-primary) 78%, white)' } : undefined}
                             aria-label={`${starValue} estrellas`}
                         >
                             <Star className={size} fill="currentColor" />
@@ -60,7 +61,8 @@ function StarRating({ value, onChange, interactive = false, size = 'h-5 w-5' }) 
                 return (
                     <Star
                         key={starValue}
-                        className={`${size} ${active ? 'text-amber-300' : 'text-neutral-600'}`}
+                        className={`${size} ${active ? '' : 'text-neutral-600'}`}
+                        style={active ? { color: 'color-mix(in srgb, var(--brand-primary) 78%, white)' } : undefined}
                         fill="currentColor"
                     />
                 );
@@ -88,6 +90,15 @@ export default function Landing({
     featuredProducts = [],
     moments: initialMoments = [],
 }) {
+    const { business } = usePage().props;
+    const theme = business?.theme ?? {};
+    const sectionTitles = business?.sectionTitles ?? {};
+    const brandName = business?.name ?? 'HUMO Cocina al Barril';
+    const heroTitle = business?.heroTitle ?? 'La mejor experiencia en asados al barril';
+    const heroDescription = business?.heroDescription ?? 'Personaliza este espacio con la propuesta de valor principal de tu negocio.';
+    const heroBadge = business?.heroBadge ?? 'Cocina al barril en tu ciudad';
+    const heroImage = business?.heroImage ?? '/images/humo_hero.png';
+    const ctaDescription = business?.ctaDescription ?? 'Consulta el menu, arma tu pedido y finaliza por WhatsApp con los datos de la orden.';
     const [moments, setMoments] = useState(initialMoments.map((moment) => decorateMoment(moment)));
     const [momentForm, setMomentForm] = useState({
         name: '',
@@ -294,8 +305,8 @@ export default function Landing({
     const handleShare = async (moment) => {
         const shareUrl = moment.share_url;
         const sharePayload = {
-            title: `${moment.title} | HUMO Cocina al Barril`,
-            text: `${moment.name} compartio este momento en HUMO: ${moment.caption}`,
+            title: `${moment.title} | ${brandName}`,
+            text: `${moment.name} compartio este momento en ${brandName}: ${moment.caption}`,
             url: shareUrl,
         };
 
@@ -360,15 +371,15 @@ export default function Landing({
     return (
         <>
             <SeoHead
-                title="Asados al barril en Manizales"
-                description="HUMO Cocina al Barril en Manizales con carnes al barril, reservas, domicilios, menu digital y momentos reales compartidos por clientes."
+                title={heroTitle}
+                description={heroDescription}
                 canonical={route('landing')}
-                image="/images/humo_hero.png"
+                image={heroImage}
                 jsonLd={{
                     '@context': 'https://schema.org',
                     '@type': 'Restaurant',
-                    name: 'HUMO Cocina al Barril',
-                    image: [`${window.location.origin}/images/humo_hero.png`],
+                    name: brandName,
+                    image: [`${window.location.origin}${heroImage}`],
                     servesCuisine: ['Asados', 'Carnes al barril', 'Parrilla'],
                     priceRange: '$$',
                     address: {
@@ -383,21 +394,21 @@ export default function Landing({
             />
 
             <PublicLayout>
-                <section className="relative overflow-hidden">
+                <section className="relative overflow-hidden" style={{ backgroundColor: theme.sectionBackgroundColor }}>
                     <div className="absolute inset-0 bg-gradient-to-b from-black via-neutral-950 to-neutral-900" />
 
                     <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
                         <div>
-                            <span className="mb-5 inline-flex rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-400">
-                                Cocina al barril en Manizales
+                            <span className="brand-dark-badge mb-5 inline-flex rounded-full px-4 py-2 text-sm font-semibold">
+                                {heroBadge}
                             </span>
 
                             <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-6xl">
-                                La mejor experiencia en asados al barril
+                                {heroTitle}
                             </h1>
 
                             <p className="mb-8 max-w-xl text-lg leading-relaxed text-neutral-300">
-                                En HUMO vivimos la carne con fuego lento, sabor intenso y una experiencia pensada para compartir. Costillas, chicharron, carnes al barril, picadas, reservas y pedidos para llevar.
+                                {heroDescription}
                             </p>
 
                             <div className="mb-8 flex flex-wrap gap-4">
@@ -409,7 +420,7 @@ export default function Landing({
                             <div className="grid gap-4 sm:grid-cols-3">
                                 <Link
                                     href={route('menu.index')}
-                                    className="group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,#f59e0b_0%,#fbbf24_100%)] px-6 py-5 text-black shadow-[0_20px_45px_rgba(245,158,11,0.28)] transition hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(245,158,11,0.38)]"
+                                    className="brand-button group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] px-6 py-5 shadow-[0_20px_45px_rgba(245,158,11,0.28)]"
                                 >
                                     <span className="text-lg">🍖</span>
                                     <span className="mt-2 text-lg font-black">Ver menu</span>
@@ -418,11 +429,11 @@ export default function Landing({
 
                                 <Link
                                     href={route('reservation.create')}
-                                    className="group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] border border-amber-400/35 bg-[linear-gradient(180deg,rgba(245,158,11,0.16)_0%,rgba(245,158,11,0.06)_100%)] px-6 py-5 text-amber-100 shadow-[0_18px_40px_rgba(0,0,0,0.22)] transition hover:-translate-y-1 hover:border-amber-300/60 hover:bg-amber-400/15"
+                                    className="brand-outline-button group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] px-6 py-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
                                 >
                                     <span className="text-lg">🍽️</span>
-                                    <span className="mt-2 text-lg font-black text-amber-300">Reservar mesa</span>
-                                    <span className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-100/70">Planea tu visita</span>
+                                    <span className="mt-2 text-lg font-black">Reservar mesa</span>
+                                    <span className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] opacity-70">Planea tu visita</span>
                                 </Link>
 
                                 <a
@@ -441,8 +452,8 @@ export default function Landing({
                         <div className="relative">
                             <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-900 shadow-2xl">
                                 <img
-                                    src="/images/humo_hero.png"
-                                    alt="Comida al barril HUMO"
+                                    src={heroImage}
+                                    alt={`Hero principal de ${brandName}`}
                                     className="h-[520px] w-full object-cover"
                                 />
                             </div>
@@ -467,7 +478,7 @@ export default function Landing({
                     </div>
                 </section>
 
-                <section className="bg-neutral-900 py-20">
+                <section className="py-20" style={{ backgroundColor: theme.sectionSurfaceColor }}>
                     <div className="mx-auto max-w-7xl px-6">
                         <div className="grid gap-6 md:grid-cols-3">
                             <div className="rounded-3xl border border-white/10 bg-neutral-800 p-6">
@@ -500,7 +511,7 @@ export default function Landing({
                     <div className="relative mx-auto max-w-7xl px-6">
                         <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-2xl">
-                                <span className="inline-flex rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                                <span className="brand-dark-badge inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
                                     Momentos HUMO
                                 </span>
                                 <h2 className="mt-5 text-4xl font-extrabold tracking-tight text-white">
@@ -513,7 +524,7 @@ export default function Landing({
 
                             <Link
                                 href={route('feed.index')}
-                                className="inline-flex items-center justify-center rounded-2xl border border-amber-400/30 bg-amber-400/10 px-5 py-3 text-sm font-semibold text-amber-300 transition hover:border-amber-300 hover:bg-amber-400/15 hover:text-amber-200"
+                                className="brand-dark-button inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold"
                             >
                                 Ver feed completo
                             </Link>
@@ -535,7 +546,7 @@ export default function Landing({
                                                 </div>
                                             </div>
 
-                                            <span className="rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                                            <span className="brand-dark-badge rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
                                                 Momento
                                             </span>
                                         </div>
@@ -580,7 +591,7 @@ export default function Landing({
                                                             <span className="md:hidden">Desliza para cambiar imagen</span>
                                                             <span className="hidden md:inline">Recorre las imagenes del momento</span>
                                                         </p>
-                                                        <p className="text-xs font-semibold text-amber-300">
+                                                        <p className="text-xs font-semibold" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                             {post.activeImageIndex + 1} / {post.images.length}
                                                         </p>
                                                     </div>
@@ -593,13 +604,13 @@ export default function Landing({
                                                                 onClick={() => handleMomentImageChange(post.id, imageIndex)}
                                                                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
                                                                     post.activeImageIndex === imageIndex
-                                                                        ? 'border-amber-400 bg-amber-400/15 text-amber-300'
+                                                                        ? 'brand-dark-badge'
                                                                         : 'border-white/10 bg-white/5 text-neutral-300 hover:border-white/20 hover:text-white'
                                                                 }`}
                                                                 aria-label={`Ver paso ${imageIndex + 1}`}
                                                             >
                                                                 <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                                                                    post.activeImageIndex === imageIndex ? 'bg-amber-400 text-black' : 'bg-white/10 text-white'
+                                                                    post.activeImageIndex === imageIndex ? 'brand-button' : 'bg-white/10 text-white'
                                                                 }`}>
                                                                     {imageIndex + 1}
                                                                 </span>
@@ -613,7 +624,7 @@ export default function Landing({
                                             <div className="p-6">
                                                 <div className="max-w-3xl">
                                                     <h3 className="text-3xl font-black tracking-tight text-white">{post.title}</h3>
-                                                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
+                                                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                         {ratingLabels[post.rating] || 'Experiencia'}
                                                     </p>
                                                     <div className="mt-3">
@@ -636,7 +647,8 @@ export default function Landing({
                                                         <button
                                                             type="button"
                                                             onClick={() => handleCommentToggle(post.id)}
-                                                            className={`inline-flex items-center gap-2 text-sm font-semibold transition ${post.showComments ? 'text-amber-300' : 'text-white hover:text-amber-300'}`}
+                                                            className={`inline-flex items-center gap-2 text-sm font-semibold transition ${post.showComments ? '' : 'text-white'}`}
+                                                            style={post.showComments ? { color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' } : undefined}
                                                         >
                                                             <MessageCircle className="h-5 w-5" />
                                                             {post.comments_count}
@@ -657,7 +669,8 @@ export default function Landing({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleCommentToggle(post.id)}
-                                                                className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300 transition hover:text-amber-200"
+                                                                className="text-xs font-semibold uppercase tracking-[0.16em] transition"
+                                                                style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}
                                                             >
                                                                 {post.showComments ? 'Ocultar' : 'Ver'}
                                                             </button>
@@ -680,19 +693,19 @@ export default function Landing({
                                                                         value={post.commentNameDraft}
                                                                         onChange={(event) => handleCommentNameChange(post.id, event.target.value)}
                                                                         placeholder="Tu nombre (opcional)"
-                                                                        className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                                        className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                                                     />
                                                                     <textarea
                                                                         rows="3"
                                                                         value={post.commentDraft}
                                                                         onChange={(event) => handleCommentDraftChange(post.id, event.target.value)}
                                                                         placeholder="Deja un comentario sobre este momento"
-                                                                        className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                                        className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                                                     />
                                                                     <button
                                                                         type="submit"
                                                                         disabled={pendingActions[`comment-${post.id}`]}
-                                                                        className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-300 transition hover:bg-amber-400/15 disabled:opacity-60"
+                                                                        className="brand-dark-button rounded-2xl px-4 py-2 text-sm font-semibold disabled:opacity-60"
                                                                     >
                                                                         Comentar
                                                                     </button>
@@ -719,7 +732,7 @@ export default function Landing({
                             <div className="space-y-6">
                                 <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f59e0b_0%,#f97316_50%,#ec4899_100%)] text-white shadow-lg">
+                                        <div className="brand-button flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
                                             <Camera className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -754,7 +767,7 @@ export default function Landing({
                                                 value={momentForm.name}
                                                 onChange={(event) => setMomentForm((currentForm) => ({ ...currentForm, name: event.target.value }))}
                                                 placeholder="Ej. Laura G."
-                                                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                             />
                                         </div>
 
@@ -768,7 +781,7 @@ export default function Landing({
                                                 value={momentForm.opinion}
                                                 onChange={(event) => setMomentForm((currentForm) => ({ ...currentForm, opinion: event.target.value }))}
                                                 placeholder="Cuenta que te gusto de tu visita, pedido o reserva."
-                                                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition placeholder:text-neutral-500 focus:border-amber-400/60"
+                                                className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                             />
                                         </div>
 
@@ -776,7 +789,7 @@ export default function Landing({
                                             <label htmlFor="moment-images" className="mb-2 block text-sm font-semibold text-white">
                                                 Imagenes del momento
                                             </label>
-                                            <label className="flex cursor-pointer items-center justify-center rounded-[1.5rem] border border-dashed border-white/15 bg-black/20 px-4 py-5 text-sm font-semibold text-neutral-300 transition hover:border-amber-400/40 hover:text-white">
+                                            <label className="brand-dark-button flex cursor-pointer items-center justify-center rounded-[1.5rem] border border-dashed px-4 py-5 text-sm font-semibold">
                                                 <input
                                                     id="moment-images"
                                                     type="file"
@@ -819,7 +832,7 @@ export default function Landing({
                                                         interactive
                                                         onChange={(rating) => setMomentForm((currentForm) => ({ ...currentForm, rating }))}
                                                     />
-                                                    <span className="text-sm font-semibold text-amber-300">
+                                                    <span className="text-sm font-semibold" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                         {momentForm.rating} estrella{momentForm.rating === 1 ? '' : 's'}
                                                     </span>
                                                 </div>
@@ -829,15 +842,15 @@ export default function Landing({
                                         <button
                                             type="submit"
                                             disabled={isSubmittingMoment}
-                                            className="w-full rounded-2xl bg-amber-500 px-5 py-3 text-sm font-bold text-black transition hover:bg-amber-400 disabled:opacity-60"
+                                            className="brand-button w-full rounded-2xl px-5 py-3 text-sm font-bold disabled:opacity-60"
                                         >
                                             Publicar momento
                                         </button>
                                     </form>
                                 </div>
 
-                                <div className="rounded-[2rem] border border-amber-400/15 bg-amber-400/8 p-6">
-                                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">Tu experiencia cuenta</p>
+                                <div className="rounded-[2rem] border p-6" style={{ borderColor: 'color-mix(in srgb, var(--brand-primary) 22%, rgba(255,255,255,0.16))', backgroundColor: 'color-mix(in srgb, var(--brand-primary) 8%, rgba(255,255,255,0.03))' }}>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Tu experiencia cuenta</p>
                                     <h3 className="mt-4 text-3xl font-black tracking-tight text-white">
                                         Comentarios y calificaciones que hacen crecer la marca
                                     </h3>
@@ -859,9 +872,9 @@ export default function Landing({
                 </section>
 
                 {featuredCategories.length > 0 && (
-                    <section className="bg-neutral-950 py-16">
+                    <section className="py-16" style={{ backgroundColor: theme.sectionBackgroundColor }}>
                         <div className="mx-auto max-w-7xl px-6">
-                            <h2 className="mb-8 text-3xl font-extrabold">Categorias destacadas</h2>
+                            <h2 className="mb-8 text-3xl font-extrabold">{sectionTitles.featuredCategories || 'Categorias destacadas'}</h2>
 
                             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
                                 {featuredCategories.map((category) => (
@@ -877,17 +890,17 @@ export default function Landing({
                     </section>
                 )}
 
-                <section className="bg-neutral-100 py-20 text-black">
+                <section className="py-20 text-black" style={{ backgroundColor: '#f5f1ea' }}>
                     <div className="mx-auto max-w-7xl px-6">
                         <div className="mb-8 flex items-end justify-between">
                             <div>
-                                <h2 className="text-3xl font-extrabold text-amber-600">Productos mas pedidos</h2>
+                                <h2 className="text-3xl font-extrabold" style={{ color: theme.primaryButtonColor }}>{sectionTitles.featuredProducts || 'Productos mas pedidos'}</h2>
                                 <p className="mt-2 text-gray-600">Seleccion de la casa disponible hoy.</p>
                             </div>
 
                             <Link
                                 href={route('menu.index')}
-                                className="hidden font-semibold text-amber-700 md:inline-flex"
+                                className="brand-auth-link hidden font-semibold md:inline-flex"
                             >
                                 Ver todo el menu
                             </Link>
@@ -901,17 +914,17 @@ export default function Landing({
                     </div>
                 </section>
 
-                <section className="bg-black py-20">
+                <section className="py-20" style={{ backgroundColor: theme.ctaBackgroundColor }}>
                     <div className="mx-auto max-w-4xl px-6 text-center">
-                        <h2 className="mb-4 text-4xl font-extrabold">Listo para probar HUMO?</h2>
+                        <h2 className="mb-4 text-4xl font-extrabold">{sectionTitles.cta || `Listo para probar ${brandName}?`}</h2>
 
                         <p className="mb-8 text-neutral-300">
-                            Consulta el menu, arma tu pedido y finaliza por WhatsApp con los datos de la orden.
+                            {ctaDescription}
                         </p>
 
                         <Link
                             href={route('menu.index')}
-                            className="inline-flex rounded-2xl bg-amber-500 px-12 py-4 font-bold text-black shadow-lg transition hover:bg-amber-400"
+                            className="brand-button inline-flex rounded-2xl px-12 py-4 font-bold shadow-lg"
                         >
                             Ordenar ahora
                         </Link>

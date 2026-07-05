@@ -28,13 +28,13 @@ export default function VerifyEmail({ status }) {
 
             <form onSubmit={submit}>
                 <div className="mt-4 flex items-center justify-between">
-                    <PrimaryButton disabled={processing}>Resend Verification Email</PrimaryButton>
+                    <PrimaryButton className="rounded-2xl px-5 py-3 focus:ring-[var(--brand-primary)]" disabled={processing}>Resend Verification Email</PrimaryButton>
 
                     <Link
                         href={route('logout')}
                         method="post"
                         as="button"
-                        className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="brand-auth-link text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand-primary)]"
                     >
                         Log Out
                     </Link>

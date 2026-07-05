@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Checkbox from '@/Components/Checkbox';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
@@ -6,8 +6,10 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -31,7 +33,7 @@ export default function Login({ status, canResetPassword }) {
             <Head title="Iniciar sesion" />
 
             <div className="mb-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-500">Acceso privado</p>
+                <p className="brand-auth-link text-[11px] font-semibold uppercase tracking-[0.28em]">Acceso privado</p>
                 <h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950">Inicia sesion</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                     Entra al panel de HUMO para gestionar productos, pedidos y operaciones del dia.
@@ -53,10 +55,10 @@ export default function Login({ status, canResetPassword }) {
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-2 block w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-none focus:border-amber-400 focus:bg-white focus:ring-amber-400"
+                        className="brand-auth-input mt-2 block w-full rounded-2xl px-4 py-3"
                         autoComplete="username"
                         isFocused={true}
-                        placeholder="admin@humo.com"
+                        placeholder="admin@admin.com"
                         onChange={(e) => setData('email', e.target.value)}
                     />
 
@@ -66,16 +68,27 @@ export default function Login({ status, canResetPassword }) {
                 <div>
                     <InputLabel htmlFor="password" value="Contrasena" className="text-sm font-semibold text-slate-700" />
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-2 block w-full rounded-2xl border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-none focus:border-amber-400 focus:bg-white focus:ring-amber-400"
-                        autoComplete="current-password"
-                        placeholder="Ingresa tu contrasena"
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
+                    <div className="relative mt-2">
+                        <TextInput
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            value={data.password}
+                            className="brand-auth-input block w-full rounded-2xl px-4 py-3 pr-14"
+                            autoComplete="current-password"
+                            placeholder="Ingresa tu contrasena"
+                            onChange={(e) => setData('password', e.target.value)}
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((value) => !value)}
+                            className="absolute inset-y-0 right-3 inline-flex items-center text-slate-400 transition hover:text-slate-700"
+                            aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
 
                     <InputError message={errors.password} className="mt-2" />
                 </div>
@@ -85,7 +98,8 @@ export default function Login({ status, canResetPassword }) {
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            className="rounded border-slate-300 text-amber-500 shadow-none focus:ring-amber-400"
+                            className="rounded border-slate-300 shadow-none focus:ring-[var(--brand-primary)]"
+                            style={{ color: 'var(--brand-primary)' }}
                             onChange={(e) => setData('remember', e.target.checked)}
                         />
                         <span className="text-sm text-slate-600">Recordarme</span>
@@ -94,7 +108,7 @@ export default function Login({ status, canResetPassword }) {
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="text-sm font-medium text-slate-500 transition hover:text-amber-600 focus:outline-none"
+                            className="brand-auth-link text-sm font-medium focus:outline-none"
                         >
                             Olvidaste tu contrasena?
                         </Link>
@@ -103,14 +117,14 @@ export default function Login({ status, canResetPassword }) {
 
                 <div className="pt-2">
                     <PrimaryButton
-                        className="w-full justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold uppercase tracking-[0.24em] hover:bg-amber-500 focus:bg-amber-500 focus:ring-amber-400"
+                        className="w-full justify-center rounded-2xl px-5 py-3 text-sm font-bold uppercase tracking-[0.24em] focus:ring-[var(--brand-primary)]"
                         disabled={processing}
                     >
                         Entrar al panel
                     </PrimaryButton>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-6 text-slate-500">
+                <div className="brand-auth-note rounded-2xl px-4 py-3 text-xs leading-6 text-slate-500">
                     Acceso exclusivo para administracion. Si necesitas soporte de ingreso, valida tus credenciales con el equipo interno.
                 </div>
             </form>

@@ -15,6 +15,21 @@ class BusinessSettingSeeder extends Seeder
                 'business_name' => 'HUMO Cocina al Barril',
                 'is_open' => true,
                 'closed_message' => 'El local esta cerrado en este momento. Vuelve pronto.',
+                'hero_badge' => 'Cocina al barril en tu ciudad',
+                'hero_title' => 'La mejor experiencia en asados al barril',
+                'hero_description' => 'Personaliza este espacio con la propuesta de valor principal de tu negocio.',
+                'navbar_background_color' => '#ffffff',
+                'navbar_text_color' => '#111827',
+                'primary_button_color' => '#f59e0b',
+                'primary_button_text_color' => '#000000',
+                'section_background_color' => '#0a0a0a',
+                'section_surface_color' => '#171717',
+                'cta_background_color' => '#111111',
+                'featured_categories_title' => 'Categorias destacadas',
+                'featured_products_title' => 'Productos mas pedidos',
+                'cta_title' => 'Listo para hacer tu pedido?',
+                'cta_description' => 'Consulta el menu, arma tu pedido y finaliza por WhatsApp con los datos de la orden.',
+                'setup_completed_at' => null,
             ]
         );
     }

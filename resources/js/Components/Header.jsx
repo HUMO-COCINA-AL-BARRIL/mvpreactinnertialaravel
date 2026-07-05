@@ -15,6 +15,7 @@ export default function Header({ business = {}, onToggleCart = () => {} }) {
     const name = business.name ?? 'La Patateria Manizales';
     const rating = business.rating ?? 5.0;
     const status = business.isOpen ? 'Abierto' : 'Cerrado';
+    const theme = business.theme ?? {};
     const [cartCount, setCartCount] = useState(0);
 
     useEffect(() => {
@@ -35,14 +36,19 @@ export default function Header({ business = {}, onToggleCart = () => {} }) {
     const badge = useMemo(() => (cartCount > 99 ? '99+' : cartCount), [cartCount]);
 
     return (
-        <header className="bg-white shadow-sm">
+        <header
+            className="brand-navbar shadow-sm"
+            style={{
+                color: theme.navbarTextColor,
+            }}
+        >
             <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link href={route('landing')} className="flex items-center gap-4">
                         <img src={business.logo ?? '/logo.png'} alt="logo" className="h-12 w-12 rounded-full" />
                         <div>
                             <div className="font-bold text-lg">{name}</div>
-                            <div className="text-sm text-gray-500 flex items-center gap-3">
+                            <div className="flex items-center gap-3 text-sm" style={{ color: theme.navbarTextColor }}>
                                 <span className="inline-flex items-center gap-2">
                                     <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .587l3.668 7.431L24 9.748l-6 5.847L19.335 24 12 20.201 4.665 24 6 15.595 0 9.748l8.332-1.73z"/></svg>
                                     <span className="font-medium">{rating.toFixed(1)}</span>
@@ -58,7 +64,7 @@ export default function Header({ business = {}, onToggleCart = () => {} }) {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={onToggleCart}
-                        className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl bg-amber-400 text-black shadow hover:bg-amber-500"
+                        className="brand-button relative inline-flex h-11 w-11 items-center justify-center rounded-xl shadow"
                         aria-label="Abrir carrito"
                     >
                         <ShoppingCart className="h-5 w-5" />
