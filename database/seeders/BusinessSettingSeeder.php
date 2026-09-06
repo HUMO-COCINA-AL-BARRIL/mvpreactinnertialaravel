@@ -17,7 +17,7 @@ class BusinessSettingSeeder extends Seeder
                 'closed_message' => 'El local esta cerrado en este momento. Vuelve pronto.',
                 'hero_badge' => 'Cocina al barril en tu ciudad',
                 'hero_title' => 'La mejor experiencia en asados al barril',
-                'hero_description' => 'Personaliza este espacio con la propuesta de valor principal de tu negocio.',
+                'hero_description' => 'El sabor del barril, el calor de una buena mesa. Disfruta nuestros asados en HUMO, reserva para compartir o pide tus favoritos a domicilio en Manizales.',
                 'navbar_background_color' => '#ffffff',
                 'navbar_text_color' => '#111827',
                 'primary_button_color' => '#f59e0b',

@@ -1,0 +1,24 @@
+# HUMO Cocina al Barril
+
+> Restaurante de asados y carnes al barril en Manizales, Colombia. Su sitio oficial permite explorar el menú, reservar mesa y acceder a las opciones de pedido a domicilio.
+
+Sitio oficial: https://humococinaalbarril.com/
+Idioma principal: español de Colombia.
+
+## Menú y servicios
+
+- [Inicio](https://humococinaalbarril.com/): presentación del restaurante, categorías destacadas y opciones para visitar o pedir.
+- [Menú digital](https://humococinaalbarril.com/menu): productos, categorías y precios publicados por el comercio.
+- [Reservar mesa](https://humococinaalbarril.com/reservation): formulario para solicitar una reserva.
+
+## Comunidad
+
+- [Momentos HUMO](https://humococinaalbarril.com/feed): fotos, opiniones, calificaciones y comentarios compartidos por visitantes. Las publicaciones expresan experiencias de sus autores.
+
+## Información para consultar
+
+Los precios, la disponibilidad de productos y la recepción de pedidos pueden cambiar. Consulta las páginas correspondientes para conocer la información vigente. La existencia del menú o del formulario de reservas no confirma disponibilidad ni una reserva aceptada.
+
+## Optional
+
+- [Mapa del sitio](https://humococinaalbarril.com/sitemap.xml): listado de páginas públicas principales.

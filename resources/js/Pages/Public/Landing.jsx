@@ -1,24 +1,70 @@
 import axios from 'axios';
-import { Dialog } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import { Camera, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Star, X } from 'lucide-react';
+import { Flame, Bike, MapPin, Utensils, CalendarDays, Camera, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Star, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ProductCard from '../../Components/ProductCard';
-import SeoHead from '../../Components/SeoHead';
+import SeoHead, { SITE_URL } from '../../Components/SeoHead';
 import PublicLayout from '../../Layouts/PublicLayout';
 
-function ToggleButton({ children, active }) {
+function HeroTag({ children }) {
+    return <span className="inline-flex items-center gap-1.5 text-xs text-neutral-400">{children}</span>;
+}
+
+function HeroActions() {
+    const [active, setActive] = useState(0);
+    const [paused, setPaused] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const [focused, setFocused] = useState(false);
+    const [reducedMotion, setReducedMotion] = useState(false);
+    useEffect(() => {
+        const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const update = () => setReducedMotion(media.matches);
+        update();
+        media.addEventListener('change', update);
+        return () => media.removeEventListener('change', update);
+    }, []);
+    useEffect(() => {
+        if (paused || hovered || focused || reducedMotion) return;
+        const timer = window.setTimeout(() => setActive((value) => (value + 1) % 3), 5500);
+        return () => window.clearTimeout(timer);
+    }, [active, paused, hovered, focused, reducedMotion]);
+    const actions = [
+        { label: 'Reservar mesa', title: 'Tu próxima buena mesa empieza aquí.', text: 'Haz espacio para compartir. Reserva tu visita y ven a disfrutar del sabor del barril.', href: route('reservation.create'), icon: CalendarDays },
+        { label: 'Ver menú', title: 'Encuentra tu próximo antojo.', text: 'Explora nuestros asados y elige los favoritos para tu próxima comida.', href: route('menu.index'), icon: Utensils },
+        { label: 'Pedir por WhatsApp', title: 'El sabor de HUMO, donde estés.', text: 'Escríbenos y pide tus favoritos a domicilio en Manizales.', href: 'https://wa.me/573001234567?text=Hola%20HUMO,%20quiero%20hacer%20un%20pedido', icon: MessageCircle, external: true },
+    ];
     return (
-        <button
-            className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold shadow-[0_12px_35px_rgba(0,0,0,0.22)] transition duration-200 ${
-                active
-                    ? 'brand-button'
-                    : 'brand-soft-button hover:-translate-y-0.5'
-            }`}
-        >
-            {children}
-        </button>
+        <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+            onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+            <div className="mb-5 flex flex-wrap gap-2" aria-label="Qué quieres hacer en HUMO">
+                {actions.map((action, index) => {
+                    const Icon = action.icon;
+                    return <button key={action.label} type="button" onClick={() => setActive(index)} aria-pressed={active === index}
+                        className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 ${active === index ? 'brand-dark-badge' : 'text-neutral-400 hover:bg-white/5 hover:text-white'}`}>
+                        <Icon aria-hidden="true" className="h-4 w-4" />{action.label}
+                    </button>;
+                })}
+            </div>
+            <div className="grid">
+                {actions.map((action, index) => (
+                    <Transition key={action.label} show={active === index} unmount={false}
+                        className="col-start-1 row-start-1" aria-hidden={active !== index} inert={active !== index ? '' : undefined}
+                        enter="transition duration-500 motion-reduce:transition-none" enterFrom="opacity-0 translate-y-3 motion-reduce:translate-y-0" enterTo="opacity-100 translate-y-0"
+                        leave="transition duration-200 motion-reduce:transition-none" leaveFrom="opacity-100" leaveTo="opacity-0">
+                        <h2 className="text-2xl font-semibold tracking-tight text-white">{action.title}</h2>
+                        <p className="mt-2 min-h-[72px] max-w-lg text-sm leading-6 text-neutral-400">{action.text}</p>
+                        {action.external ? (
+                            <a href={action.href} target="_blank" rel="noopener noreferrer" className="brand-button mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">{action.label}<ChevronRight aria-hidden="true" className="h-4 w-4" /></a>
+                        ) : (
+                            <Link href={action.href} className="brand-button mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold">{action.label}<ChevronRight aria-hidden="true" className="h-4 w-4" /></Link>
+                        )}
+                    </Transition>
+                ))}
+            </div>
+            {!reducedMotion && <button type="button" onClick={() => setPaused((value) => !value)} className="mt-4 rounded px-1 py-2 text-xs text-neutral-400 hover:text-white">{paused ? 'Reanudar animación' : 'Pausar animación'}</button>}
+        </div>
     );
 }
 
@@ -96,7 +142,8 @@ export default function Landing({
     const sectionTitles = business?.sectionTitles ?? {};
     const brandName = business?.name ?? 'HUMO Cocina al Barril';
     const heroTitle = business?.heroTitle ?? 'La mejor experiencia en asados al barril';
-    const heroDescription = business?.heroDescription ?? 'Personaliza este espacio con la propuesta de valor principal de tu negocio.';
+    const defaultHeroDescription = 'El sabor del barril, el calor de una buena mesa. Disfruta nuestros asados en HUMO, reserva para compartir o pide tus favoritos a domicilio en Manizales.';
+    const heroDescription = !business?.heroDescription || business.heroDescription === 'Personaliza este espacio con la propuesta de valor principal de tu negocio.' ? defaultHeroDescription : business.heroDescription;
     const heroBadge = business?.heroBadge ?? 'Cocina al barril en tu ciudad';
     const heroImage = business?.heroImage ?? '/images/humo_hero.png';
     const ctaDescription = business?.ctaDescription ?? 'Consulta el menu, arma tu pedido y finaliza por WhatsApp con los datos de la orden.';
@@ -399,17 +446,17 @@ export default function Landing({
                     '@context': 'https://schema.org',
                     '@type': 'Restaurant',
                     name: brandName,
-                    image: [`${window.location.origin}${heroImage}`],
+                    '@id': `${SITE_URL}/#restaurant`,
+                    image: [new URL(heroImage, SITE_URL).href],
+                    description: heroDescription,
+                    hasMenu: `${SITE_URL}/menu`,
                     servesCuisine: ['Asados', 'Carnes al barril', 'Parrilla'],
-                    priceRange: '$$',
                     address: {
                         '@type': 'PostalAddress',
-                        streetAddress: 'Carrera 23 #74-114, sector El Perro',
                         addressLocality: 'Manizales',
                         addressCountry: 'CO',
                     },
-                    telephone: '+57 300 123 4567',
-                    url: route('landing'),
+                    url: `${SITE_URL}/`,
                 }}
             />
 
@@ -419,9 +466,7 @@ export default function Landing({
 
                     <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 lg:grid-cols-2">
                         <div>
-                            <span className="brand-dark-badge mb-5 inline-flex rounded-full px-4 py-2 text-sm font-semibold">
-                                {heroBadge}
-                            </span>
+
 
                             <h1 className="mb-6 text-5xl font-extrabold tracking-tight md:text-6xl">
                                 {heroTitle}
@@ -431,42 +476,13 @@ export default function Landing({
                                 {heroDescription}
                             </p>
 
-                            <div className="mb-8 flex flex-wrap gap-4">
-                                <ToggleButton active>🔥 Asados al barril</ToggleButton>
-                                <ToggleButton>🛵 Domicilios</ToggleButton>
-                                <ToggleButton>📍 Manizales</ToggleButton>
+                            <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2">
+                                <HeroTag><Flame aria-hidden="true" className="h-3.5 w-3.5" /> Asados al barril</HeroTag>
+                                <HeroTag><Bike aria-hidden="true" className="h-3.5 w-3.5" /> Domicilios</HeroTag>
+                                <HeroTag><MapPin aria-hidden="true" className="h-3.5 w-3.5" /> Manizales</HeroTag>
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-3">
-                                <Link
-                                    href={route('menu.index')}
-                                    className="brand-button group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] px-6 py-5 shadow-[0_20px_45px_rgba(245,158,11,0.28)]"
-                                >
-                                    <span className="text-lg">🍖</span>
-                                    <span className="mt-2 text-lg font-black">Ver menu</span>
-                                    <span className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-black/70">Favoritos de la casa</span>
-                                </Link>
-
-                                <Link
-                                    href={route('reservation.create')}
-                                    className="brand-outline-button group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] px-6 py-5 shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
-                                >
-                                    <span className="text-lg">🍽️</span>
-                                    <span className="mt-2 text-lg font-black">Reservar mesa</span>
-                                    <span className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] opacity-70">Planea tu visita</span>
-                                </Link>
-
-                                <a
-                                    href="https://wa.me/573001234567?text=Hola%20HUMO,%20quiero%20hacer%20un%20pedido"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="group inline-flex min-h-[84px] flex-col justify-center rounded-[1.75rem] bg-[linear-gradient(180deg,#ffffff_0%,#f5f5f5_100%)] px-6 py-5 text-black shadow-[0_18px_40px_rgba(0,0,0,0.24)] transition hover:-translate-y-1 hover:bg-white"
-                                >
-                                    <span className="text-lg">💬</span>
-                                    <span className="mt-2 text-lg font-black">Pedir por WhatsApp</span>
-                                    <span className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-black/55">Rapido y directo</span>
-                                </a>
-                            </div>
+                            <HeroActions />
                         </div>
 
                         <div className="relative">

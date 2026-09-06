@@ -1,12 +1,29 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="es-CO">
     <head>
         @php
             $business = \App\Models\BusinessSetting::current();
             $siteName = $business->business_name ?: config('app.name', 'Laravel');
             $siteDescription = $business->hero_description ?: 'Menu digital, reservas y domicilios personalizables desde una sola instalacion.';
-            $siteImage = $business->hero_image_path ? asset('storage/'.$business->hero_image_path) : asset('images/humo_hero.png');
+            $officialUrl = 'https://humococinaalbarril.com';
+            $canonicalUrl = $officialUrl.'/'.ltrim(request()->path(), '/');
+            $siteImage = $business->hero_image_path ? $officialUrl.'/storage/'.$business->hero_image_path : $officialUrl.'/images/humo_hero.png';
         @endphp
+        <link rel="canonical" href="{{ $canonicalUrl }}" inertia="canonical">
+        <meta property="og:url" content="{{ $canonicalUrl }}" inertia="og:url">
+        @if(request()->routeIs('landing'))
+            <script type="application/ld+json">{!! json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'Restaurant',
+                '@id' => $officialUrl.'/#restaurant',
+                'name' => $siteName,
+                'url' => $officialUrl.'/',
+                'image' => $siteImage,
+                'servesCuisine' => ['Asados', 'Carnes al barril', 'Parrilla'],
+                'hasMenu' => $officialUrl.'/menu',
+                'address' => ['@type' => 'PostalAddress', 'addressLocality' => 'Manizales', 'addressCountry' => 'CO'],
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+        @endif
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="{{ $siteDescription }}">
