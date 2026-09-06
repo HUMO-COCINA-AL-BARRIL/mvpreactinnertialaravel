@@ -3,7 +3,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, router, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Package, Shapes, Bike, PanelLeftClose, PanelLeftOpen, Store, Power, CalendarDays, Camera, ShoppingCart, Palette } from 'lucide-react';
+import { LayoutDashboard, Package, Shapes, Bike, PanelLeftClose, PanelLeftOpen, Store, CalendarDays, Camera, ShoppingCart, Palette } from 'lucide-react';
 
 function hexToRgba(hex, alpha) {
     if (!hex) {
@@ -120,34 +120,36 @@ export default function Authenticated({ user, header, children, themeOverride = 
                         })}
                     </div>
 
-                    <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/5 p-3">
-                        <div className={`flex items-start gap-3 ${sidebarOpen ? '' : 'justify-center'}`}>
-                            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isBusinessOpen ? 'bg-emerald-400/15 text-emerald-300' : 'bg-rose-400/15 text-rose-300'}`}>
-                                <Store className="h-5 w-5" />
-                            </span>
-
+                    <div className={`mt-6 flex items-center border-t border-white/10 py-4 ${sidebarOpen ? 'justify-between gap-3 px-2' : 'justify-center'}`}>
                             {sidebarOpen && (
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-semibold text-white">Estado del comercio</p>
-                                    <p className="mt-1 text-xs leading-5 text-white/55">
-                                        {isBusinessOpen ? `${businessName} esta recibiendo pedidos.` : `${businessName} esta pausado para nuevos pedidos.`}
+                                <div className="min-w-0">
+                                    <p className="flex items-center gap-2 text-sm font-medium text-white/90">
+                                        <Store aria-hidden="true" className="h-4 w-4 shrink-0 text-white/55" />
+                                        Pedidos
                                     </p>
+                                    <p className="mt-0.5 text-xs text-white/55" aria-live="polite">
+                                        {isBusinessOpen ? 'Abiertos' : 'Pausados'}
+                                    </p>
+                                    {!isBusinessOpen && (
+                                        <p className="mt-1 max-w-[160px] text-xs leading-4 text-white/55">
+                                            No se reciben pedidos. Puede ser por alta demanda o cierre del comercio.
+                                        </p>
+                                    )}
                                 </div>
                             )}
-                        </div>
 
                         <button
                             type="button"
+                            role="switch"
+                            aria-checked={isBusinessOpen}
+                            aria-label="Recepción de pedidos"
                             onClick={toggleBusinessStatus}
-                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                                isBusinessOpen
-                                    ? 'bg-rose-500/12 text-rose-200 hover:bg-rose-500/18'
-                                    : 'bg-emerald-500/12 text-emerald-200 hover:bg-emerald-500/18'
-                            }`}
-                            title={isBusinessOpen ? 'Cerrar comercio para pedidos' : 'Abrir comercio para pedidos'}
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                            title={isBusinessOpen ? 'Cerrar pedidos' : 'Abrir pedidos'}
                         >
-                            <Power className="h-4 w-4" />
-                            {sidebarOpen ? (isBusinessOpen ? 'Cerrar pedidos' : 'Abrir pedidos') : null}
+                            <span aria-hidden="true" className={`flex h-6 w-10 items-center rounded-full p-1 transition-colors ${isBusinessOpen ? 'bg-emerald-400' : 'bg-white/20'}`}>
+                                <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isBusinessOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+                            </span>
                         </button>
                     </div>
 

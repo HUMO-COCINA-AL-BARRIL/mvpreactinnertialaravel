@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { Info, ShoppingCart } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
 function getCartCount() {
@@ -76,6 +76,17 @@ export default function Header({ business = {}, onToggleCart = () => {} }) {
                     </button>
                 </div>
             </div>
+            {business.isOpen === false && (
+                <div role="status" className="border-t border-amber-200 bg-amber-50 text-amber-900">
+                    <div className="mx-auto flex max-w-6xl items-start gap-2 px-6 py-3 text-sm">
+                        <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                        <p>
+                            <span className="font-semibold">Pedidos pausados. </span>
+                            {business.closedMessage?.trim() || 'No estamos recibiendo pedidos en este momento. Podemos estar atendiendo una alta demanda o fuera del horario de atención. Inténtalo más tarde.'}
+                        </p>
+                    </div>
+                </div>
+            )}
         </header>
     );
 }

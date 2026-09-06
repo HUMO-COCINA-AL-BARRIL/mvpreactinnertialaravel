@@ -168,11 +168,11 @@ export default function AdminCategoriesIndex({ auth, categories = [] }) {
 
                             <div className="md:col-span-2">
                                 <ImageUploadField
-                                    label="Imagen"
+                                    label="Imagen de fondo de la categoría"
                                     preview={preview}
                                     fileName={selectedImageName}
                                     error={form.errors.image}
-                                    helpText="Formatos sugeridos: JPG, PNG o WEBP. Usa una imagen representativa para la categoria."
+                                    helpText="Se muestra como fondo de la tarjeta en el inicio. Usa una foto horizontal JPG, PNG o WEBP de hasta 4 MB."
                                     currentText="Usando imagen actual de la categoria."
                                     onFileChange={(file) => {
                                         form.setData('image', file);

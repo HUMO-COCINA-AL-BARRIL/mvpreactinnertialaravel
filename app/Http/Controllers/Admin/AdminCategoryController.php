@@ -54,6 +54,10 @@ class AdminCategoryController extends Controller
             $data['image'] = $request->file('image')->store('categories', 'public');
         }
 
+        if (! $request->hasFile('image')) {
+            unset($data['image']);
+        }
+
         $category->update($data);
 
         return back()->with('success', 'Categoría actualizada correctamente.');

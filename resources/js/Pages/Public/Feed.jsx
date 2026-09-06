@@ -237,17 +237,17 @@ export default function Feed({ moments: initialMoments = [] }) {
                 <section className="relative overflow-hidden bg-[linear-gradient(180deg,#080808_0%,#141414_100%)] py-16">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_26%)]" />
 
-                    <div className="relative mx-auto max-w-6xl px-6">
-                        <div className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
+                        <div className="mb-10 flex flex-col gap-5 ">
                             <div className="max-w-3xl">
                                 <span className="brand-dark-badge inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
                                     Feed HUMO
                                 </span>
                                 <h1 className="mt-5 text-4xl font-black tracking-tight text-white md:text-5xl">
-                                    Momentos en orden cronologico
+                                    La comunidad HUMO
                                 </h1>
                                 <p className="mt-4 text-base leading-7 text-neutral-300">
-                                    Un timeline publico con las cards de los momentos compartidos por clientes, ordenado del mas reciente al mas antiguo.
+                                    Cada visita tiene una historia. Descubre lo que comparte nuestra comunidad.
                                 </p>
                             </div>
 
@@ -269,20 +269,20 @@ export default function Feed({ moments: initialMoments = [] }) {
 
                         <div className="mb-8 flex items-center justify-between">
                             <Link href={route('landing')} className="brand-dark-button inline-flex rounded-2xl px-4 py-2 text-sm font-semibold">
-                                Volver a la landing
+                                Volver al inicio
                             </Link>
-                            <p className="text-sm text-neutral-400">Orden: mas reciente primero</p>
+                            <p className="text-sm text-neutral-400">Más recientes</p>
                         </div>
 
                         <div className="space-y-6">
                             {moments.map((post) => (
                                 <article
                                     key={post.id}
-                                    className="overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-900 shadow-[0_25px_70px_rgba(0,0,0,0.32)]"
+                                    className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900"
                                 >
                                     <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img src="/images/logo_humo.jpg" alt="HUMO" className="h-11 w-11 rounded-2xl object-cover ring-1 ring-white/10" />
+                                            <span aria-hidden="true" className="brand-dark-badge flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">{post.name?.trim().slice(0, 2).toUpperCase() || "HU"}</span>
                                             <div>
                                                 <p className="text-sm font-semibold text-white">{post.name}</p>
                                                 <p className="text-xs text-neutral-400">{post.tag}</p>
@@ -299,7 +299,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                             <img
                                                 src={post.images[post.activeImageIndex]?.url || post.image_url || '/images/humo_hero.png'}
                                                 alt={post.title}
-                                                className="h-[360px] w-full touch-pan-y object-cover"
+                                                className="aspect-square max-h-[600px] w-full touch-pan-y object-cover"
                                                 onTouchStart={(event) => handleMomentTouchStart(post.id, event)}
                                                 onTouchEnd={handleMomentTouchEnd(post)}
                                             />
@@ -328,55 +328,32 @@ export default function Feed({ moments: initialMoments = [] }) {
                                         </div>
 
                                         {post.images.length > 1 && (
-                                            <div className="border-b border-white/10 bg-black/20 px-5 py-3">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                                                        <span className="md:hidden">Desliza para cambiar imagen</span>
-                                                        <span className="hidden md:inline">Recorre las imagenes del momento</span>
-                                                    </p>
-                                                    <p className="text-xs font-semibold" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
-                                                        {post.activeImageIndex + 1} / {post.images.length}
-                                                    </p>
-                                                </div>
-
-                                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                <div className="flex items-center justify-center gap-1 border-b border-white/10 py-1">
                                                     {post.images.map((image, imageIndex) => (
-                                                        <button
-                                                            key={image.id || image.url}
-                                                            type="button"
+                                                        <button key={image.id || image.url} type="button"
                                                             onClick={() => handleMomentImageChange(post.id, imageIndex)}
-                                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                                                                post.activeImageIndex === imageIndex
-                                                                    ? 'brand-dark-badge'
-                                                                    : 'border-white/10 bg-white/5 text-neutral-300 hover:border-white/20 hover:text-white'
-                                                            }`}
-                                                            aria-label={`Ver paso ${imageIndex + 1}`}
-                                                        >
-                                                            <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                                                                post.activeImageIndex === imageIndex ? 'brand-button' : 'bg-white/10 text-white'
-                                                            }`}>
-                                                                {imageIndex + 1}
-                                                            </span>
-                                                            <span>Paso {imageIndex + 1}</span>
+                                                            aria-label={`Ver imagen ${imageIndex + 1}`}
+                                                            aria-pressed={post.activeImageIndex === imageIndex}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
+                                                            <span className={`h-1.5 rounded-full transition-all ${post.activeImageIndex === imageIndex ? 'w-4 bg-amber-400' : 'w-1.5 bg-white/30'}`} />
                                                         </button>
                                                     ))}
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
 
-                                        <div className="p-6">
+                                        <div className="p-4 sm:p-5">
                                             <div className="max-w-3xl">
-                                                <h2 className="text-3xl font-black tracking-tight text-white">{post.title}</h2>
+                                                <h2 className="text-lg font-semibold tracking-tight text-white">{post.title}</h2>
                                                 <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                     {ratingLabels[post.rating] || 'Experiencia'}
                                                 </p>
                                                 <div className="mt-3">
                                                     <StarRating value={post.rating} size="h-4 w-4" />
                                                 </div>
-                                                <p className="mt-4 text-sm leading-7 text-neutral-300">{post.caption}</p>
+                                                <p className="mt-3 text-sm leading-6 text-neutral-300">{post.caption}</p>
                                             </div>
 
-                                            <div className="mt-6 border-t border-white/10 pt-5">
+                                            <div className="mt-4 border-t border-white/10 pt-4">
                                                 <div className="flex flex-wrap items-center gap-4 text-white">
                                                     <button
                                                         type="button"
@@ -406,7 +383,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                                     </button>
                                                 </div>
 
-                                                <div className="mt-5 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+                                                <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
                                                     <div className="flex items-center justify-between gap-3">
                                                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">Comentarios</p>
                                                         <button
@@ -466,7 +443,7 @@ export default function Feed({ moments: initialMoments = [] }) {
                                 <div className="rounded-[2rem] border border-dashed border-white/15 bg-white/5 p-8 text-center">
                                     <p className="text-lg font-semibold text-white">Todavia no hay momentos publicados</p>
                                     <p className="mt-2 text-sm text-neutral-400">
-                                        Cuando se publiquen nuevos momentos en la landing, apareceran tambien aqui en orden cronologico.
+                                        Comparte tu experiencia desde el inicio y sé parte de la comunidad.
                                     </p>
                                 </div>
                             )}

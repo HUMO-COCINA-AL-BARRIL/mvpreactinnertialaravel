@@ -29,7 +29,7 @@ class LandingController extends Controller
                 'likeReactions as likes_count',
             ])
             ->latest()
-            ->limit(2)
+            ->limit(12)
             ->get()
             ->each(function (Moment $moment) use ($sessionId) {
                 $moment->liked = $moment->reactions->contains(

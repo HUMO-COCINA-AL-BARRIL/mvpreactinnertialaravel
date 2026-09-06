@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Dialog } from '@headlessui/react';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, ChevronLeft, ChevronRight, Heart, MessageCircle, Send, Star, X } from 'lucide-react';
@@ -100,15 +101,32 @@ export default function Landing({
     const heroImage = business?.heroImage ?? '/images/humo_hero.png';
     const ctaDescription = business?.ctaDescription ?? 'Consulta el menu, arma tu pedido y finaliza por WhatsApp con los datos de la orden.';
     const [moments, setMoments] = useState(initialMoments.map((moment) => decorateMoment(moment)));
+    const [momentSlide, setMomentSlide] = useState(0);
+    const visibleMoments = moments.length ? [moments[momentSlide % moments.length]] : [];
+    const [carouselHovered, setCarouselHovered] = useState(false);
+    const [carouselFocused, setCarouselFocused] = useState(false);
     const [momentForm, setMomentForm] = useState({
         name: '',
         opinion: '',
         rating: 5,
         images: [],
     });
+    const [showMomentComposer, setShowMomentComposer] = useState(false);
     const [isSubmittingMoment, setIsSubmittingMoment] = useState(false);
     const [pendingActions, setPendingActions] = useState({});
     const touchStartX = useRef({});
+    const activeCommentsOpen = visibleMoments[0]?.showComments ?? false;
+
+    useEffect(() => {
+        if (moments.length < 2 || carouselHovered || carouselFocused || showMomentComposer || activeCommentsOpen) return;
+
+        const timeout = window.setTimeout(() => {
+            setMomentSlide((current) => (current + 1) % moments.length);
+        }, 5000);
+
+        return () => window.clearTimeout(timeout);
+    }, [momentSlide, moments.length, carouselHovered, carouselFocused, showMomentComposer, activeCommentsOpen]);
+
 
     useEffect(() => {
         return () => {
@@ -184,13 +202,15 @@ export default function Landing({
             setMoments((currentMoments) => [
                 decorateMoment(response.data.moment, { showComments: true }),
                 ...currentMoments,
-            ].slice(0, 2));
+            ].slice(0, 12));
+            setMomentSlide(0);
             setMomentForm({
                 name: '',
                 opinion: '',
                 rating: 5,
                 images: [],
             });
+            setShowMomentComposer(false);
             toast.success(response.data.message || 'Tu momento ya aparece en el feed.');
         } catch (error) {
             toast.error(error.response?.data?.message || 'No se pudo publicar el momento.');
@@ -505,20 +525,20 @@ export default function Landing({
                     </div>
                 </section>
 
-                <section className="relative overflow-hidden bg-[linear-gradient(180deg,#0a0a0a_0%,#151515_100%)] py-20">
+                <section className="relative overflow-hidden bg-[linear-gradient(180deg,#0a0a0a_0%,#151515_100%)] py-12 sm:py-16">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.05),transparent_28%)]" />
 
-                    <div className="relative mx-auto max-w-7xl px-6">
+                    <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
                         <div className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                             <div className="max-w-2xl">
                                 <span className="brand-dark-badge inline-flex rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em]">
                                     Momentos HUMO
                                 </span>
-                                <h2 className="mt-5 text-4xl font-extrabold tracking-tight text-white">
-                                    Un feed de momentos reales creado por quienes visitan HUMO
+                                <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                                    La buena mesa se comparte
                                 </h2>
                                 <p className="mt-4 text-sm leading-7 text-neutral-300">
-                                    En la landing mostramos solo los dos momentos mas recientes. Si quieres ver el historial completo, entra al feed.
+                                    Fotos, antojos e historias de nuestra comunidad. Comparte la tuya.
                                 </p>
                             </div>
 
@@ -530,23 +550,49 @@ export default function Landing({
                             </Link>
                         </div>
 
-                        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                            <div className="space-y-6">
-                                {moments.map((post) => (
+                        <div className="mx-auto w-full">
+                            <div id="compartir-momento" className="mb-6 w-full rounded-2xl border border-white/10 bg-neutral-900 p-4">
+                                <button type="button" onClick={() => setShowMomentComposer(true)} aria-haspopup="dialog" className="group flex w-full items-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
+                                    <span className="brand-button flex h-11 w-11 shrink-0 items-center justify-center rounded-full"><Camera className="h-5 w-5" /></span>
+                                    <span className="flex-1 rounded-full bg-white/5 px-4 py-3 text-sm text-neutral-300 transition group-hover:bg-white/10">¿Qué tal estuvo tu visita? Comparte tu momento</span>
+                                </button>
+                                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3">
+                                    <p className="text-xs text-neutral-400">{moments.length} momentos · {totalComments} comentarios · {averageRating} ★</p>
+                                    <button type="button" onClick={() => setShowMomentComposer(true)} aria-haspopup="dialog" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-amber-300 transition hover:bg-white/5"><Camera className="h-4 w-4" /> Foto / Opinión</button>
+                                </div>
+                            </div>
+                            <div className="w-full" role="region" aria-roledescription="carrusel" aria-label="Publicaciones de la comunidad"
+                                onMouseEnter={() => setCarouselHovered(true)} onMouseLeave={() => setCarouselHovered(false)}
+                                onFocusCapture={() => setCarouselFocused(true)}
+                                onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setCarouselFocused(false); }}>
+                                {moments.length > 1 && (
+                                    <div className="mb-4 flex flex-wrap justify-center gap-1" aria-label="Elegir publicación">
+                                        {moments.map((moment, index) => (
+                                            <button key={moment.id} type="button" onClick={() => setMomentSlide(index)}
+                                                aria-label={`Ver publicación ${index + 1} de ${moment.name}`}
+                                                aria-current={momentSlide % moments.length === index ? 'true' : undefined}
+                                                className="flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
+                                                <span className={`h-2 rounded-full transition-all ${momentSlide % moments.length === index ? 'w-5 bg-amber-400' : 'w-2 bg-white/30'}`} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            <div className="space-y-5">
+                                {visibleMoments.map((post) => (
                                     <article
                                         key={post.id}
-                                        className="overflow-hidden rounded-[2rem] border border-white/10 bg-neutral-900 shadow-[0_25px_70px_rgba(0,0,0,0.32)]"
+                                        className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900"
                                     >
-                                        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+                                        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-4">
                                             <div className="flex items-center gap-3">
-                                                <img src="/images/logo_humo.jpg" alt="HUMO" className="h-11 w-11 rounded-2xl object-cover ring-1 ring-white/10" />
+                                                <span aria-hidden="true" className="brand-dark-badge flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">{post.name?.trim().slice(0, 2).toUpperCase() || "HU"}</span>
                                                 <div>
                                                     <p className="text-sm font-semibold text-white">{post.name}</p>
                                                     <p className="text-xs text-neutral-400">{post.tag}</p>
                                                 </div>
                                             </div>
 
-                                            <span className="brand-dark-badge rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                                            <span className="brand-dark-badge shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]">
                                                 Momento
                                             </span>
                                         </div>
@@ -556,7 +602,7 @@ export default function Landing({
                                                 <img
                                                     src={post.images[post.activeImageIndex]?.url || post.image_url || '/images/humo_hero.png'}
                                                     alt={post.title}
-                                                    className="h-[360px] w-full touch-pan-y object-cover"
+                                                    className="aspect-square max-h-[600px] w-full touch-pan-y object-cover"
                                                     onTouchStart={(event) => handleMomentTouchStart(post.id, event)}
                                                     onTouchEnd={handleMomentTouchEnd(post)}
                                                 />
@@ -585,55 +631,32 @@ export default function Landing({
                                             </div>
 
                                             {post.images.length > 1 && (
-                                                <div className="border-b border-white/10 bg-black/20 px-5 py-3">
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                                                            <span className="md:hidden">Desliza para cambiar imagen</span>
-                                                            <span className="hidden md:inline">Recorre las imagenes del momento</span>
-                                                        </p>
-                                                        <p className="text-xs font-semibold" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
-                                                            {post.activeImageIndex + 1} / {post.images.length}
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                        {post.images.map((image, imageIndex) => (
-                                                            <button
-                                                                key={image.id || image.url}
-                                                                type="button"
-                                                                onClick={() => handleMomentImageChange(post.id, imageIndex)}
-                                                                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                                                                    post.activeImageIndex === imageIndex
-                                                                        ? 'brand-dark-badge'
-                                                                        : 'border-white/10 bg-white/5 text-neutral-300 hover:border-white/20 hover:text-white'
-                                                                }`}
-                                                                aria-label={`Ver paso ${imageIndex + 1}`}
-                                                            >
-                                                                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                                                                    post.activeImageIndex === imageIndex ? 'brand-button' : 'bg-white/10 text-white'
-                                                                }`}>
-                                                                    {imageIndex + 1}
-                                                                </span>
-                                                                <span>Paso {imageIndex + 1}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                                <div className="flex items-center justify-center gap-1 border-b border-white/10 py-1">
+                                                    {post.images.map((image, imageIndex) => (
+                                                        <button key={image.id || image.url} type="button"
+                                                            onClick={() => handleMomentImageChange(post.id, imageIndex)}
+                                                            aria-label={`Ver imagen ${imageIndex + 1}`}
+                                                            aria-pressed={post.activeImageIndex === imageIndex}
+                                                            className="flex h-8 w-8 items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
+                                                            <span className={`h-1.5 rounded-full transition-all ${post.activeImageIndex === imageIndex ? 'w-4 bg-amber-400' : 'w-1.5 bg-white/30'}`} />
+                                                        </button>
+                                                    ))}
                                                 </div>
                                             )}
 
-                                            <div className="p-6">
+                                            <div className="p-4 sm:p-5">
                                                 <div className="max-w-3xl">
-                                                    <h3 className="text-3xl font-black tracking-tight text-white">{post.title}</h3>
+                                                    <h3 className="text-lg font-semibold tracking-tight text-white">{post.title}</h3>
                                                     <p className="mt-3 text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>
                                                         {ratingLabels[post.rating] || 'Experiencia'}
                                                     </p>
                                                     <div className="mt-3">
                                                         <StarRating value={post.rating} size="h-4 w-4" />
                                                     </div>
-                                                    <p className="mt-4 text-sm leading-7 text-neutral-300">{post.caption}</p>
+                                                    <p className="mt-3 text-sm leading-6 text-neutral-300">{post.caption}</p>
                                                 </div>
 
-                                                <div className="mt-6 border-t border-white/10 pt-5">
+                                                <div className="mt-4 border-t border-white/10 pt-4">
                                                     <div className="flex flex-wrap items-center gap-4 text-white">
                                                         <button
                                                             type="button"
@@ -663,7 +686,7 @@ export default function Landing({
                                                         </button>
                                                     </div>
 
-                                                    <div className="mt-5 space-y-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+                                                    <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
                                                         <div className="flex items-center justify-between gap-3">
                                                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">Comentarios</p>
                                                             <button
@@ -729,34 +752,23 @@ export default function Landing({
                                 )}
                             </div>
 
-                            <div className="space-y-6">
-                                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="brand-button flex h-12 w-12 items-center justify-center rounded-2xl shadow-lg">
-                                            <Camera className="h-6 w-6" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">Comparte tu momento</p>
-                                            <p className="text-xs text-neutral-400">Deja tu nombre, opinion y calificacion sin crear cuenta</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 grid grid-cols-3 gap-3">
-                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                                            <p className="text-2xl font-black text-white">{moments.length}</p>
-                                            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-neutral-400">Momentos</p>
-                                        </div>
-                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                                            <p className="text-2xl font-black text-white">{totalComments}</p>
-                                            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-neutral-400">Comentarios</p>
-                                        </div>
-                                        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                                            <p className="text-2xl font-black text-white">{averageRating}</p>
-                                            <p className="mt-1 text-xs uppercase tracking-[0.16em] text-neutral-400">Calificacion</p>
-                                        </div>
-                                    </div>
-
-                                    <form onSubmit={handleMomentSubmit} className="mt-6 space-y-4">
+                            </div>
+                            <Dialog open={showMomentComposer} onClose={() => { if (!isSubmittingMoment) setShowMomentComposer(false); }} className="relative z-[70]"
+                                style={{ '--brand-primary': theme.primaryButtonColor ?? '#f59e0b', '--brand-primary-text': theme.primaryButtonTextColor ?? '#000000' }}>
+                                <div className="fixed inset-0 bg-black/75 backdrop-blur-sm" aria-hidden="true" />
+                                <div className="fixed inset-0 overflow-y-auto">
+                                    <div className="flex min-h-full items-center justify-center p-4">
+                                        <Dialog.Panel className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 text-white shadow-2xl">
+                                            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
+                                                <div>
+                                                    <Dialog.Title className="text-lg font-semibold">Crear publicación</Dialog.Title>
+                                                    <Dialog.Description className="mt-1 text-xs text-neutral-400">Comparte tu momento. Sin crear cuenta.</Dialog.Description>
+                                                </div>
+                                                <button type="button" onClick={() => setShowMomentComposer(false)} disabled={isSubmittingMoment} aria-label="Cerrar publicación" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-50">
+                                                    <X className="h-5 w-5" />
+                                                </button>
+                                            </div>
+                                    <form onSubmit={handleMomentSubmit} className="space-y-4 p-5 sm:p-6">
                                         <div>
                                             <label htmlFor="moment-name" className="mb-2 block text-sm font-semibold text-white">
                                                 Nombre
@@ -773,32 +785,32 @@ export default function Landing({
 
                                         <div>
                                             <label htmlFor="moment-opinion" className="mb-2 block text-sm font-semibold text-white">
-                                                Opinion
+                                                Opinión
                                             </label>
                                             <textarea
                                                 id="moment-opinion"
-                                                rows="4"
+                                                rows="3"
                                                 value={momentForm.opinion}
                                                 onChange={(event) => setMomentForm((currentForm) => ({ ...currentForm, opinion: event.target.value }))}
-                                                placeholder="Cuenta que te gusto de tu visita, pedido o reserva."
+                                                placeholder="¿Qué tal estuvo tu visita?"
                                                 className="brand-dark-input w-full rounded-2xl px-4 py-3 text-sm transition"
                                             />
                                         </div>
 
                                         <div>
                                             <label htmlFor="moment-images" className="mb-2 block text-sm font-semibold text-white">
-                                                Imagenes del momento
+                                                Imágenes del momento
                                             </label>
-                                            <label className="brand-dark-button flex cursor-pointer items-center justify-center rounded-[1.5rem] border border-dashed px-4 py-5 text-sm font-semibold">
+                                            <label className="brand-dark-button focus-within:ring-2 focus-within:ring-amber-400 flex cursor-pointer items-center justify-center rounded-[1.5rem] border border-dashed px-4 py-5 text-sm font-semibold">
                                                 <input
                                                     id="moment-images"
                                                     type="file"
                                                     accept="image/*"
                                                     multiple
-                                                    className="hidden"
+                                                    className="sr-only"
                                                     onChange={(event) => handleMomentImagesChange(event.target.files)}
                                                 />
-                                                Puedes subir hasta 6 imagenes
+                                                Añadir fotos · máximo 6
                                             </label>
 
                                             {momentForm.images.length > 0 && (
@@ -813,6 +825,7 @@ export default function Landing({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleRemoveSelectedImage(index)}
+                                                                aria-label={`Eliminar foto ${index + 1}`}
                                                                 className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white transition hover:bg-black"
                                                             >
                                                                 <X className="h-4 w-4" />
@@ -824,7 +837,7 @@ export default function Landing({
                                         </div>
 
                                         <div>
-                                            <p className="mb-3 text-sm font-semibold text-white">Calificacion</p>
+                                            <p className="mb-3 text-sm font-semibold text-white">Calificación</p>
                                             <div className="rounded-[1.5rem] border border-white/10 bg-black/20 px-4 py-3">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <StarRating
@@ -844,29 +857,14 @@ export default function Landing({
                                             disabled={isSubmittingMoment}
                                             className="brand-button w-full rounded-2xl px-5 py-3 text-sm font-bold disabled:opacity-60"
                                         >
-                                            Publicar momento
+                                            {isSubmittingMoment ? 'Publicando…' : 'Publicar momento'}
                                         </button>
                                     </form>
-                                </div>
-
-                                <div className="rounded-[2rem] border p-6" style={{ borderColor: 'color-mix(in srgb, var(--brand-primary) 22%, rgba(255,255,255,0.16))', backgroundColor: 'color-mix(in srgb, var(--brand-primary) 8%, rgba(255,255,255,0.03))' }}>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.22em]" style={{ color: 'color-mix(in srgb, var(--brand-primary) 72%, white)' }}>Tu experiencia cuenta</p>
-                                    <h3 className="mt-4 text-3xl font-black tracking-tight text-white">
-                                        Comentarios y calificaciones que hacen crecer la marca
-                                    </h3>
-                                    <p className="mt-4 text-sm leading-7 text-neutral-300">
-                                        Si reservaste, pediste a domicilio o viviste la experiencia en mesa, este feed se convierte en una mezcla de prueba social, resenas y contenido fresco creado por clientes reales.
-                                    </p>
-
-                                    <div className="mt-6 rounded-3xl border border-white/10 bg-black/20 p-5">
-                                        <p className="text-sm font-semibold text-white">Como funciona</p>
-                                        <p className="mt-2 text-sm leading-7 text-neutral-400">
-                                            La persona escribe su nombre, deja su opinion, elige estrellas y luego puede seguir interactuando con likes, comentarios y compartir.
-                                        </p>
+                                        </Dialog.Panel>
                                     </div>
                                 </div>
+                            </Dialog>
 
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -878,12 +876,23 @@ export default function Landing({
 
                             <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
                                 {featuredCategories.map((category) => (
-                                    <div
+                                    <Link
                                         key={category.id}
-                                        className="rounded-3xl border border-white/10 bg-neutral-900 p-5"
+                                        href={route('menu.index', { category: category.slug })}
+                                        className="group relative flex min-h-[140px] items-end overflow-hidden rounded-2xl border border-white/10 bg-neutral-800 p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 sm:min-h-[170px]"
                                     >
-                                        <p className="font-bold">{category.name}</p>
-                                    </div>
+                                        {category.image_url && (
+                                            <img src={category.image_url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105" />
+                                        )}
+                                        <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                                        <div className="relative flex w-full items-end justify-between gap-3 text-white">
+                                            <div>
+                                                <p className="text-base font-semibold leading-tight">{category.name}</p>
+                                                <p className="mt-1.5 text-xs text-white/75">Explorar menú</p>
+                                            </div>
+                                            <ChevronRight aria-hidden="true" className="h-5 w-5 shrink-0" />
+                                        </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>
